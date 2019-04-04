@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <filter id="shadow">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="blur" />
+    <feOffset in="blur" dx="4" dy="4" result="offsetBlur"/>
+    <feMerge>
+      <feMergeNode in="offsetBlur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+</defs>
+</svg>
