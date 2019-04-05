@@ -103,7 +103,3 @@
         }
     }
 </script>
-
-<style scoped>
-
-</style>

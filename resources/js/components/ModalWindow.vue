@@ -108,7 +108,3 @@
         console.log('document body.clientHeight = ' + document.getElementsByTagName('body')[0].clientHeight);
     }
 </script>
-
-<style scoped>
-
-</style>
