@@ -138,12 +138,19 @@
                             vm.isAlert = false;
                             vm.deviceInfo = res.data.deviceInfo;
                         }
+
+                        // For iOS 9 finally issue(?)
+                        vm.isRunning = false;
                     })
                     .catch(function (err) {
                         var msg = 'なんらかのエラーが発生しました [CODE:' + err.response.status + ']';
                         vm.$root.showInstMessage(msg, window.$ikitell.MSG_THEMES.WARNING);
+
+                        // For iOS 9 finally issue(?)
+                        vm.isRunning = false;
                     })
                     .finally(function () {
+                        // NOTE: 'finally' is not working iOS 9?
                         vm.isRunning = false;
                     });
             },

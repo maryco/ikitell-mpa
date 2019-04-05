@@ -97,8 +97,16 @@
                         // TODO: Implements when it's to be need.
                         //console.log('Response(status) : ' + res.status);
                         //console.log('Response(data) : ' + res.data.message);
+
+                        // For iOS 9 finally issue(?)
+                        vm.$root.$emit('dismiss-loading');
+                        vm.switchSenderState(true);
                     })
                     .catch(function (err) {
+                        // For iOS 9 finally issue(?)
+                        vm.$root.$emit('dismiss-loading');
+                        vm.switchSenderState(true);
+
                         if (!err.response) {
                             // Unknown error?
                             vm.responseIsError = true;
@@ -123,6 +131,7 @@
                         vm.responseMessage = 'なんらかのエラーが発生しました (CODE:'+err.response.status+')';
                     })
                     .finally(function () {
+                        // NOTE: 'finally' is not working iOS 9?
                         vm.$root.$emit('dismiss-loading');
                         vm.switchSenderState(true);
                     });
