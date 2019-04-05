@@ -13,8 +13,10 @@
         <div class="layout-section-title mt-section">
             <svg role="img" class="icon-prefix icon-m" aria-hidden="true"><use xlink:href="#mobile"></use><title>Mobile</title></svg>
             <h2 class="title-with-icon-m"><span>{{ __('label.menu.device') }}</span>
+                @if(auth()->user()->getMaxMakingDevice() > count($devices))
                 <a href="{{ route('device.create') }}" class="btn btn-inline btn-theme-single-green">
                     <svg role="img" class="icon-prefix" aria-hidden="true"><use xlink:href="#plus"></use><title>{{ __('label.btn.add') }}</title></svg>{{ __('label.btn.add') }}</a>
+                @endif
             </h2>
         </div>
 

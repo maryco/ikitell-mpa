@@ -8,7 +8,7 @@
                 <dl class="panel-data-list">
                     <div class="data-item-pair">
                         <dt>登録可能な端末数</dt>
-                        <dd>1</dd>
+                        <dd>{{ config('specs.making_device_max.basic') }}</dd>
                     </div>
                     <div class="data-item-pair">
                         <dt>タイマーリセット機能</dt>

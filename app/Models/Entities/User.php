@@ -133,6 +133,17 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Return the limit of the max device making depends on users.plan.
+     *
+     * @return int
+     */
+    public function getMaxMakingDevice()
+    {
+        $key = sprintf('specs.making_device_max.%s', $this->getPlanName());
+        return config($key, 0);
+    }
+
+    /**
      * Return the limit of the max rule making depends on users.plan.
      *
      * @return int

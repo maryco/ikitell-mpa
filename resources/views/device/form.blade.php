@@ -18,6 +18,7 @@
         <form method="post"
               action="{{ (!$device->id) ? route('device.create') : route('device.edit', ['id' => $device->id]) }}">
             @csrf
+            <input type="hidden" name="device_total" value="0">
             <div class="layout-form-group-h-column">
                 <div class="form-set-image-picker">
                     <device-image-picker

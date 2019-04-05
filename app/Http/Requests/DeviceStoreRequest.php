@@ -3,9 +3,12 @@
 namespace App\Http\Requests;
 
 use App\Models\Entities\Device;
+use App\Models\Repositories\DeviceRepository;
+use App\Rules\MaxStored;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
 
 class DeviceStoreRequest extends BaseStoreRequest
@@ -47,33 +50,48 @@ class DeviceStoreRequest extends BaseStoreRequest
      */
     public function rules()
     {
-        return [
-            'device_name' => 'required|string|max:200',
-            'device_user_name' => 'nullable|string|max:50',
-            'device_image_preset' => ['nullable', Rule::in(data_get($this->getPresetImages(), '*.value'))],
-            'device_description' => 'nullable|string|max:300',
-            'device_reset_word' => 'nullable|string|max:20',
-            'device_suspend_start_at' => 'nullable|date_format:Y-m-d|after_or_equal:today',
-            'device_suspend_end_at' => 'nullable|date_format:Y-m-d|after_or_equal:device_suspend_start_at',
-
-            'device_rule_id' => [
+        // Rules for the only create.
+        $createRule = [];
+        if (Route::getCurrentRoute()->getName() === 'device.create') {
+            $createRule['device_total'] = [
                 'required',
-                'string',
-                Rule::exists('rules', 'id')->where(function ($query) {
-                    $query->where('user_id', Auth::id());
-                }),
-            ],
+                new MaxStored(
+                    new DeviceRepository(),
+                    Auth::user()->getMaxMakingDevice()
+                ),
+            ];
+        }
 
-            'device_notification_targets' => [
-                'nullable',
-                'array',
-                'max:'.Auth::user()->getMaxNotifyTargets(),
-                Rule::exists('contacts', 'id')->where(function ($query) {
-                    $query->where('user_id', Auth::id())
-                        ->whereNotNull('email_verified_at');
-                }),
+        return array_merge(
+            [
+                'device_name' => 'required|string|max:200',
+                'device_user_name' => 'nullable|string|max:50',
+                'device_image_preset' => ['nullable', Rule::in(data_get($this->getPresetImages(), '*.value'))],
+                'device_description' => 'nullable|string|max:300',
+                'device_reset_word' => 'nullable|string|max:20',
+                'device_suspend_start_at' => 'nullable|date_format:Y-m-d|after_or_equal:today',
+                'device_suspend_end_at' => 'nullable|date_format:Y-m-d|after_or_equal:device_suspend_start_at',
+
+                'device_rule_id' => [
+                    'required',
+                    'string',
+                    Rule::exists('rules', 'id')->where(function ($query) {
+                        $query->where('user_id', Auth::id());
+                    }),
+                ],
+
+                'device_notification_targets' => [
+                    'nullable',
+                    'array',
+                    'max:' . Auth::user()->getMaxNotifyTargets(),
+                    Rule::exists('contacts', 'id')->where(function ($query) {
+                        $query->where('user_id', Auth::id())
+                            ->whereNotNull('email_verified_at');
+                    }),
+                ],
             ],
-        ];
+            $createRule
+        );
     }
 
     /**
