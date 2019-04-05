@@ -21,7 +21,7 @@
                 <svg role="img" class="visual-emotion"><use xlink:href="#{{ $logoRef ?? 'logo_normal' }}"></use></svg>
 
                 @foreach($messages ?? [] as $message)
-                <p>{{ $message }}</p>
+                <p class="text-center">{{ $message }}</p>
                 @endforeach
 
                 @if($linkItems ?? false)
