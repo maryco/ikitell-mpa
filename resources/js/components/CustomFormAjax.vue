@@ -118,7 +118,7 @@
 
                         // '303' assume success, then redirect to the specified location
                         if (parseInt(err.response.status) === 303 && err.response.data.hasOwnProperty('location')) {
-                            window.location = err.response.data.location;
+                            window.location.href = err.response.data.location;
                             return;
                         }
 
