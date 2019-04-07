@@ -1,0 +1,33 @@
+#!/bin/sh
+# Usage: $ ikime-cmd {watch|resume|alert}
+#
+
+APP_HOME=/home/vagrant/code/ikitell
+PHP_CMD=`which php`
+
+lara_cmd=-1
+
+if [ "${1}" = "watch" ] ; then
+    lara_cmd=device:watch
+fi
+if [ "${1}" = "resume" ] ; then
+    lara_cmd=device:resume
+fi
+if [ "${1}" = "alert" ] ; then
+    lara_cmd=alert:send
+fi
+if [ "${1}" = "notify" ] ; then
+    lara_cmd="queue:work --stop-when-empty"
+fi
+
+if [ ${lara_cmd} -eq -1 ] ; then
+    echo "[ERROR] Invarid Command. (${1})"
+    exit 1
+fi
+
+echo "[INFO] Execute artisan. (${lara_cmd})"
+
+cd $APP_HOME
+${PHP_CMD} artisan ${lara_cmd}
+
+exit 0

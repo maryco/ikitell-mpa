@@ -19,7 +19,7 @@ class AlertNotification extends Notification implements ShouldQueue, ShouldLoggi
     /**
      * The queue name for a job.queue
      */
-    const QUEUE_NAME = 'alert';
+    const QUEUE_NAME = 'default';//'alert';
 
     /**
      * The key of the view.

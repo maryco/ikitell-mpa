@@ -19,7 +19,7 @@ class VerifyRequestContactsNotification extends VerifyEmail implements ShouldQue
     /**
      * The queue name for a job.queue
      */
-    const QUEUE_NAME = 'verify-request';
+    const QUEUE_NAME = 'default';//'verify-request';
 
     /**
      * The view for mail
