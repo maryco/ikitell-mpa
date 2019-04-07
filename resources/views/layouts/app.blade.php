@@ -42,7 +42,12 @@
             <div class="navi">
                 <ul class="">
                     <li class="navi-item"><a href="{{ route('register') }}">{{ __('label.btn.register_account') }}</a></li>
+                @if(is_seems_ie())
+                    {{--TODO: Fix bug IE not redirect after get ajax response.--}}
+                    <li class="navi-item"><a href="{{ route('login') }}">{{ __('label.btn.login') }}</a></li>
+                @else
                     <li class="navi-item"><a href="#" @click.prevent="showModal('login')">{{ __('label.btn.login') }}</a></li>
+                @endif
                 </ul>
             </div>
         @endif

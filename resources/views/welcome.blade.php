@@ -32,7 +32,12 @@
                     {{--TODO: fix activateButton() ajax issue (app.js)--}}
                     {{--<li class="btn btn-theme-main"><a href="#" @click.prevent="showModal('register')">{{ __('label.btn.register_account') }}</a></li>--}}
                     <li class="btn btn-theme-main"><a href="{{ route('register') }}">{{ __('label.btn.register_account') }}</a></li>
+                @if(is_seems_ie())
+                    {{--TODO: Fix bug IE not redirect after get ajax response.--}}
+                    <li class="btn btn-theme-main-flip"><a href="{{ route('login') }}">{{ __('label.btn.login') }}</a></li>
+                @else
                     <li class="btn btn-theme-main-flip"><a href="#" @click.prevent="showModal('login')">{{ __('label.btn.login') }}</a></li>
+                @endif
                 </ul>
             </div>
         </div>
