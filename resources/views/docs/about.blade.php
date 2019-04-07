@@ -21,6 +21,7 @@
                 <p class="text-readable">本サービスは、「おひとりさま」の不測の事態を誰かにお知らせするための自己防衛サービスです。</p>
                 <p class="text-readable">好んで「ひとり」の人も、やむなく「ひとり」の人も、もしもの時に多くの人に迷惑をかけてしまう事態を発生させてしまうのは本望ではないと思います。その最悪の事態を防ぐことを目的としています。</p>
                 <p class="text-readable">基本的に自分自身に必要だと危機感を持っていたので自分用ですが、ひとりで使用するにはサーバのリソースが勿体無いため、同じように必要としている人にもご利用いただけるようなWEBアプリケーションとして整備しました。</p>
+                <p class="text-xs">(最低限動作すると思いますが「IE(11以上)」でのご利用は非推奨です。)</p>
                 <ul class="layout-h-btn-box">
                     <li><a class="btn btn-theme-main-flip" href="#usage">使い方</a></li>
                     <li><a class="btn btn-theme-main-flip" href="{{ url('/') }}">Homeへ</a></li>
@@ -116,7 +117,7 @@
                     通知の０回目は予告として自分にだけ通知メールを送信します。</p>
                 <p class="frame-box">
                     <svg role="img" class="icon icon-circle-l icon-white badge-alert"><use xlink:href="#info"></use><title>Info</title></svg>
-                    １回目以降は自分と設定した通史先へ通知メールを送信します。</p>
+                    １回目以降は自分と設定した通知先へ通知メールを送信します。</p>
             </template>
         </collapse-panel>
 

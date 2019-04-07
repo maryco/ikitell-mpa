@@ -78,7 +78,6 @@ const app = new Vue({
     computed: {
         isIE: function () {
             var isIE = document.querySelector('meta[name="seems-ie"]');
-            console.log('Is IE ? ==> ' + isIE.getAttribute('content'));
             return parseInt(isIE.getAttribute('content')) === 1;
         }
     },
@@ -115,11 +114,7 @@ const app = new Vue({
             }
 
             var style = window.getComputedStyle(spMenuBtn);
-            if (style && style.display === 'block') {
-                return true;
-            }
-
-            return false;
+            return style && style.display === 'block';
         },
 
         /**
