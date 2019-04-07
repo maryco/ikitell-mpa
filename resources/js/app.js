@@ -26,23 +26,22 @@ window.$ikitell = {};
 // const files = require.context('./', true, /\.vue$/i)
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
-//Vue.component('main-menu-panel', require('./components/MainMenuPanel.vue').default);
-Vue.component('dashboard-panel', require('./components/DashboardPanel.vue').default);
-Vue.component('modal-window', require('./components/ModalWindow.vue').default);
-Vue.component('instant-message', require('./components/InstantMessage.vue').default);
-Vue.component('app-inform-panel', require('./components/AppInformPanel.vue').default);
-Vue.component('custom-form-ajax', require('./components/CustomFormAjax.vue').default);
-Vue.component('pop-out-select', require('./components/PopOutSelect.vue').default);
-Vue.component('pop-in-list', require('./components/PopInList.vue').default);
+Vue.component('flat-pickr', VueFlatPickr);
+
 Vue.component('custom-select', require('./components/CustomSelect.vue').default);
 Vue.component('select-sync-content', require('./components/SelectSyncContent.vue').default);
-Vue.component('mail-preview-panel', require('./components/MailPreviewPanel.vue').default);
 Vue.component('confirmation-panel', require('./components/ConfirmationPanel.vue').default);
 Vue.component('loading-panel', require('./components/LoadingPanel.vue').default);
 Vue.component('collapse-panel', require('./components/CollapsePanel.vue').default);
+Vue.component('instant-message', require('./components/InstantMessage.vue').default);
+Vue.component('app-inform-panel', require('./components/AppInformPanel.vue').default);
+Vue.component('custom-form-ajax', require('./components/CustomFormAjax.vue').default);
+Vue.component('modal-window', require('./components/ModalWindow.vue').default);
+Vue.component('pop-out-select', require('./components/PopOutSelect.vue').default);
+Vue.component('pop-in-list', require('./components/PopInList.vue').default);
+Vue.component('mail-preview-panel', require('./components/MailPreviewPanel.vue').default);
+Vue.component('dashboard-panel', require('./components/DashboardPanel.vue').default);
 Vue.component('device-image-picker', require('./components/DeviceImagePicker.vue').default);
-
-Vue.component('flat-pickr', VueFlatPickr);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -53,31 +52,38 @@ Vue.component('flat-pickr', VueFlatPickr);
 const app = new Vue({
     el: '#app',
 
-    data: {
-        // For MainMenuPanel
-        isMenuActive: true,
+    data: function () {
+        return {
+            // For MainMenuPanel
+            isMenuActive: true,
 
-        // For Common modalWindow
-        posY: 0,
-        modalStates: {
-            login: false,
-            register: false,
-            deviceImage: false,
-            mailPreview: false,
-            confirmation: false,
-            loading: false
-        },
+            // For Common modalWindow
+            posY: 0,
+            modalStates: {
+                login: false,
+                register: false,
+                deviceImage: false,
+                mailPreview: false,
+                confirmation: false,
+                loading: false
+            },
 
-        // For Common instantMessage
-        appInstMsg: '',
-        appInstMsgTheme: $ikitell.MSG_THEMES.INFO,
-        appInstMsgActiveTime: 3000
+            // For Common instantMessage
+            appInstMsg: '',
+            appInstMsgTheme: $ikitell.MSG_THEMES.INFO,
+            appInstMsgActiveTime: 3000
+        };
     },
 
-    created() {
+    computed: {
+        isIE: function () {
+            var isIE = document.querySelector('meta[name="seems-ie"]');
+            console.log('Is IE ? ==> ' + isIE.getAttribute('content'));
+            return parseInt(isIE.getAttribute('content')) === 1;
+        }
     },
 
-    mounted() {
+    mounted: function () {
         this.$on('hide-modal', this.hideModal);
         this.$on('show-inst-message', this.showInstMessage);
 
@@ -89,7 +95,12 @@ const app = new Vue({
         });
 
         // Init menu visibility.
-        this.isMenuActive = !this.isMobile();
+        // NOTE: It's use 'nextTick' because of the IE(11) sometimes menu disappear.
+        // see: https://jp.vuejs.org/v2/guide/reactivity.html
+        var vm = this;
+        Vue.nextTick(function () {
+            vm.isMenuActive = !vm.isMobile();
+        });
     },
 
     methods: {
@@ -162,7 +173,12 @@ const app = new Vue({
          * @param name
          */
         showModal: function (name) {
-            this.posY = window.scrollY;
+            if (this.isIE) {
+                this.posY = document.documentElement.scrollTop;
+            } else {
+                this.posY = window.scrollY;
+            }
+
             this.modalStates[name] = true;
         },
 

@@ -63,9 +63,6 @@
             };
         },
 
-        created: function () {
-        },
-
         props: {
             isFirst: {
                 type: Boolean,

@@ -54,12 +54,6 @@
             },
         },
 
-        mounted: function () {
-        },
-
-        created: function () {
-        },
-
         methods: {
             dismiss() {
                 this.$root.$emit('hide-modal', 'loading');

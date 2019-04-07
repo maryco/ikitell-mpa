@@ -80,10 +80,6 @@
             }
         },
 
-        created: function () {
-            //this.initializeData();
-        },
-
         mounted: function () {
             this.initializeData();
         },

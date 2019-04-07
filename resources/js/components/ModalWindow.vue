@@ -66,12 +66,6 @@
             },
         },
 
-        mounted: function () {
-        },
-
-        created: function () {
-        },
-
         methods: {
             dismiss() {
                 // Issue event of the dismiss modal to the parent
@@ -100,11 +94,11 @@
         }
     }
 
-    function debugHeights()
-    {
-        console.log('window.outerHeight = ' + window.outerHeight);
-        console.log('window.innerHeight = ' + window.innerHeight);
-        console.log('document #app.clientHeight = ' + document.getElementById('app').clientHeight);
-        console.log('document body.clientHeight = ' + document.getElementsByTagName('body')[0].clientHeight);
-    }
+    // function debugHeights()
+    // {
+    //     console.log('window.outerHeight = ' + window.outerHeight);
+    //     console.log('window.innerHeight = ' + window.innerHeight);
+    //     console.log('document #app.clientHeight = ' + document.getElementById('app').clientHeight);
+    //     console.log('document body.clientHeight = ' + document.getElementsByTagName('body')[0].clientHeight);
+    // }
 </script>

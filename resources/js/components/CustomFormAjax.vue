@@ -51,10 +51,12 @@
             senderRunningClass: {
                 type: String,
                 default: 'state-running'
+            },
+            slotScopeProps: {
+                doAjaxSubmit: function () { return this.doAjaxSubmit() },
+                hasError: function () { return this.hasError() },
+                getErrorMsg: function () {  return this.getErrorMsg() }
             }
-        },
-
-        created: function () {
         },
 
         mounted: function () {

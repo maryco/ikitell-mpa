@@ -4,6 +4,7 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="seems-ie" content="{{ is_seems_ie() ? 1 : 0 }}">
     <meta content="@yield('pageTitle') | Ikitell" name="title">
     <meta content="Ikitell.meは「おひとりさま」の不測の事態を誰かにお知らせするための自己防衛サービスです" name="description">
     <meta content="ひとり暮らし,孤独死" name="keywords">
@@ -80,8 +81,10 @@
 
 @include('modals.confirmation')
 @include('modals.loading')
+
 </div><!--//#app-->
 
+<script src="https://www.promisejs.org/polyfills/promise-6.1.0.min.js"></script>
 <script type="text/javascript" src="{{ mix('js/app.js') }}"></script>
 </body>
 
