@@ -74,6 +74,8 @@
                         <label for="">{{ __('validation.attributes.device_last_reported_at') }}</label>
                         <input type="text" value="{{ $device->reported_at ? $device->getReportedDateTime(false)->format('Y-m-d H:i') : ''}}" placeholder="" disabled />
                     </div>
+
+                    @component('components.ie_flex_stretch') @endcomponent
                 </div>
             </div>
 
@@ -105,6 +107,8 @@
                             <span class="text-form-notice text-attention">{{ $errors->first('device_suspend_end_at') }}</span>
                         @endif
                     </div>
+
+                    @component('components.ie_flex_stretch') @endcomponent
                 </div>
             </div>
 
@@ -181,6 +185,8 @@
                         </ul>
                     </div>
                     @endif
+
+                    @component('components.ie_flex_stretch') @endcomponent
 
                 </div><!--.form-items-l-->
             </div><!--//layout-form-group-h-column-->

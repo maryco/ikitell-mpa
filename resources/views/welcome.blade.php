@@ -43,6 +43,5 @@
 
 @section('add-on-content')
     @include('modals.login')
-    @include('modals.register')
-
+{{--    @include('modals.register')--}}
 @endsection

@@ -53,6 +53,7 @@
                         </ul>
                     </div>
 
+                    @component('components.ie_flex_stretch') @endcomponent
                 </div>
             </div>
         </form>

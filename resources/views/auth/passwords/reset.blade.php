@@ -45,6 +45,8 @@
                         </ul>
                     </div>
 
+                    @component('components.ie_flex_stretch') @endcomponent
+
                 </div><!--//.form-items-l-->
             </div><!--//.layout-form-group-h-column-->
         </form>
