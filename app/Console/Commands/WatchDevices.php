@@ -75,6 +75,11 @@ class WatchDevices extends Command
                 continue;
             }
 
+            if (!$device->ownerUser) {
+                Log::warning('The device owner user is invalid. [%device]', ['%device' => $device->id]);
+                continue;
+            }
+
             if ($device->isSuspend()) {
                 $res = $this->deviceRepo->beginSuspend($device->id);
                 $report['Begin suspend'][] = ['id' => $device->id, 'result' => $res];

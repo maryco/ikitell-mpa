@@ -205,7 +205,14 @@ class DeviceRepository implements DeviceRepositoryInterface
 
         return Device::where('in_alert', false)
             ->where('in_suspend', false)
-            ->with(['rule', 'contact', 'ownerUser'])
+            ->with([
+                'rule',
+                'contact',
+                'ownerUser' => function ($query) {
+                    $query->whereNotNull('email_verified_at')
+                        ->where('ban', 0);
+                }
+            ])
             ->orderBy('reported_at')
             ->orderBy('id')
             ->limit($limit)
