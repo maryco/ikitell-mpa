@@ -204,15 +204,14 @@ class DeviceRepository implements DeviceRepositoryInterface
         // FIXME: sort order is all right ?
 
         return Device::where('in_alert', false)
+            ->select('devices.*')
             ->where('in_suspend', false)
-            ->with([
-                'rule',
-                'contact',
-                'ownerUser' => function ($query) {
-                    $query->whereNotNull('email_verified_at')
-                        ->where('ban', 0);
-                }
-            ])
+            ->join('users', function ($join) {
+                $join->on('devices.owner_id', '=', 'users.id')
+                    ->whereNotNull('users.email_verified_at')
+                    ->where('users.ban', 0);
+            })
+            ->with(['rule', 'contact', 'ownerUser'])
             ->orderBy('reported_at')
             ->orderBy('id')
             ->limit($limit)

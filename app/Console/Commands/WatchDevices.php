@@ -76,7 +76,7 @@ class WatchDevices extends Command
             }
 
             if (!$device->ownerUser) {
-                Log::warning('The device owner user is invalid. [%device]', ['%device' => $device->id]);
+                Log::warning('The device has no owner user. [%device]', ['%device' => $device->id]);
                 continue;
             }
 
