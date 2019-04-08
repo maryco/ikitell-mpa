@@ -11,7 +11,7 @@ return [
 
     'app' => [
         'registered' => 'Account registered!\n Will send mail for the verify your email address. Please complete verify at the mail.',
-        'verified' => 'Complete verify email address!',
+        'verified' => 'Complete verify email address!\nAnd has reset timer of devices, for activate.',
         'resent' => 'A fresh verification link has been sent to your email address.',
         'saved' => 'Saved.',
         'edited' => 'Edited.',

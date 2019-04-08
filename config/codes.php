@@ -56,6 +56,7 @@ return [
     | 2: Manual report by the user with a web app.
     | 3: Automatic report from the unknown device.
     | 4: System report for the resume from suspend.
+    | 5: System report for other cases.
     | 0: Unknown(default).
     |
     */
@@ -65,6 +66,7 @@ return [
         'user_web' => 2,
         'auto' => 3,
         'system_resume' => 4,
+        'system' => 5,
         'unknown' => 0,
     ],
 ];

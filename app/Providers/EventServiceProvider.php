@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Listeners\MarkDeviceReported;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
@@ -23,6 +24,9 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        Verified::class => [
+            MarkDeviceReported::class
+        ]
     ];
 
     /**
