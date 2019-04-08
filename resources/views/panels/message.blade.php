@@ -17,7 +17,7 @@
     <div class="layout-contents">
 
         <div class="layout-panel panel-with-picture">
-            <div class="panel-body">
+            <div class="panel-body text-center">
                 <svg role="img" class="visual-emotion"><use xlink:href="#{{ $logoRef ?? 'logo_normal' }}"></use></svg>
 
                 @foreach($messages ?? [] as $message)
