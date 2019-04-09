@@ -95,6 +95,13 @@ return [
             'level' => 'debug',
             'days' => 14,
         ],
+
+        'production' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/laravel.log'),
+            'level' => 'warning',
+            'days' => 30,
+        ],
     ],
 
 ];
