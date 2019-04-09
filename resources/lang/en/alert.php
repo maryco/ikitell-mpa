@@ -14,12 +14,12 @@ return [
     'template' => [
         '101' => [
             'name' => 'Notice message(01)',
-            'subject' => '[Ikitell] Please try contact to the no response user.',
+            'subject' => '[IkitellMe] Please try contact to the no response user.',
         ],
 
         '102' => [
             'name' => 'Notice message(02)',
-            'subject' => '[Ikitell] Please try contact to the no response user.',
+            'subject' => '[IkitellMe] Please try contact to the no response user.',
         ],
     ],
 

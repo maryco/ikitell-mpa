@@ -14,12 +14,12 @@ return [
     'template' => [
         '101' => [
             'name' => '通知メールテンプレート(01)',
-            'subject' => '[Ikitell] 安否確認のお願い',
+            'subject' => '[IkitellMe] 安否確認のお願い',
         ],
 
         '102' => [
             'name' => '通知メールテンプレート(02)',
-            'subject' => '[Ikitell] 安否確認のお願い',
+            'subject' => '[IkitellMe] 安否確認のお願い',
         ],
     ],
 
