@@ -94,7 +94,7 @@ class AppServiceProvider extends ServiceProvider
         if (!($command->notification instanceof ShouldLogging)) {
             Log::debug(
                 'Insetance is not implements of ShouldLogging [%job]',
-                ['%job' => $event->job->getId()]
+                ['%job' => $event->job->getJobId()]
             );
             return $empty;
         }
