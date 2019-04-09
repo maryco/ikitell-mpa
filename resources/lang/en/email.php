@@ -10,12 +10,12 @@ return [
     */
 
     'subject' => [
-        //'verify_email' => '[Ikitell] Verify Email Address',
-        'reset_password' => '[Ikitell] Reset Password Notification',
-        'verify_email_register' => '[Ikitell] Verify Your Email Address',
-        'verify_email_contacts' => '[Ikitell] Please Verify This Email Address',
-        'contacts_email_verified' => '[Ikitell] Your Contacts Has Verified',
-        'device_resumed' => '[Ikitell] Your Device Has Resumed',
+        //'verify_email' => '[IkitellMe] Verify Email Address',
+        'reset_password' => '[IkitellMe] Reset Password Notification',
+        'verify_email_register' => '[IkitellMe] Verify Your Email Address',
+        'verify_email_contacts' => '[IkitellMe] Please Verify This Email Address',
+        'contacts_email_verified' => '[IkitellMe] Your Contacts Has Verified',
+        'device_resumed' => '[IkitellMe] Your Device Has Resumed',
     ],
 
     'action' => [

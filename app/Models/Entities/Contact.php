@@ -145,7 +145,7 @@ class Contact extends BaseModel
         $sinceSendAt = Carbon::parse($this->last_send_verify_at)
             ->diffInMinutes(Carbon::now());
 
-        Log::warning('Minutes of since latest send_verify_at = ', ['' => $sinceSendAt]);
+        Log::debug('Minutes of since latest send_verify_at = ', ['' => $sinceSendAt]);
 
         return $sinceSendAt >= config('specs.send_contacts_verify_interval');
     }

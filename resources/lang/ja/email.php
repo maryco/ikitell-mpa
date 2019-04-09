@@ -10,12 +10,12 @@ return [
     */
 
     'subject' => [
-        //'verify_email' => '[Ikitell] Verify Email Address',
-        'reset_password' => '[Ikitell] パスワード再設定',
-        'verify_email_register' => '[Ikitell] 登録メールアドレスの確認',
-        'verify_email_contacts' => '[Ikitell] メールアドレス利用の承認依頼',
-        'contacts_email_verified' => '[Ikitell] 通知先のメールアドレスが承認されました',
-        'device_resumed' => '[Ikitell] 端末の休止期間終了のお知らせ',
+        //'verify_email' => '[IkitellMe] Verify Email Address',
+        'reset_password' => '[IkitellMe] パスワード再設定',
+        'verify_email_register' => '[IkitellMe] 登録メールアドレスの確認',
+        'verify_email_contacts' => '[IkitellMe] メールアドレス利用の承認依頼',
+        'contacts_email_verified' => '[IkitellMe] 通知先のメールアドレスが承認されました',
+        'device_resumed' => '[IkitellMe] 端末の休止期間終了のお知らせ',
     ],
 
     'action' => [
