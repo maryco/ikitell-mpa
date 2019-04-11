@@ -25,10 +25,11 @@
                 <div class="form-items-s">
                     <div class="form-item-group state-disp-only">
                         <label for="">{{ __('validation.attributes.profile_id') }}</label>
-                        <input type="text" value="{{ $profile->email }}" placeholder="" disabled/></div>
+                        <input type="text" value="{{ $profile->email }}" placeholder="" disabled/>
+                    </div>
+                    @component('components.help') 通知メール内で使用されます @endcomponent
                     <div class="form-item-group">
                         <label for="inputName">{{ __('validation.attributes.profile_name') }}
-                        @component('components.help') 通知メール内で使用されます @endcomponent
                         </label>
                         <input name="profile_name" id="inputName" type="text" value="{{ $errors->any() ? old('profile_name') : $profile->name }}" placeholder=""/>
                         @if ($errors->has('profile_name'))

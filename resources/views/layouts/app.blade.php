@@ -32,7 +32,7 @@
 @section('header')
 <header class="{{ !auth()->check() ? 'header-theme-dark' : '' }}">
     @auth
-    <a href="{{ route('home') }}"><div class="header-logo"><svg role="img"><use xlink:href="#logo"></use></svg></div></a>
+    <div class="header-logo"><a href="{{ route('home') }}"><svg role="img"><use xlink:href="#logo"></use></svg></a></div>
     <button name="menu" type="button" class="btn-toggle-menu act-toggle-menu"
             id="btnSpToggleMenu"
             @click="toggleMenu()">Menu</button>

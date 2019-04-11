@@ -37,24 +37,24 @@
                         <span class="text-form-notice text-attention">{{ $errors->first('device_name') }}</span>
                         @endif
                     </div>
+                    @component('components.help')
+                        通知メール内で使用する名前です。未設定の場合はプロフィールの名前が使用されます
+                    @endcomponent
                     <div class="form-item-group">
                         <label for="inputUserName" class="">
                             {{ __('validation.attributes.device_user_name') }}
-                            @component('components.help')
-                                通知メール内で使用する名前です。未設定の場合はプロフィールの名前が使用されます
-                            @endcomponent
                         </label>
                         <input type="text" name="device_user_name" id="inputUserName" value="{{ $errors->any() ? old('device_user_name') : $device->user_name }}" placeholder="" />
                         @if ($errors->has('device_user_name'))
                             <span class="text-form-notice text-attention">{{ $errors->first('device_user_name') }}</span>
                         @endif
                     </div>
+                    @component('components.help')
+                        タイマーをリセットするボタンに表示されます(例：「元気です」)
+                    @endcomponent
                     <div class="form-item-group">
                         <label for="inputResetWord">
                             {{ __('validation.attributes.device_reset_word') }}
-                            @component('components.help')
-                                タイマーをリセットするボタンに表示されます(例：「元気です」)
-                            @endcomponent
                         </label>
                         <input type="text" name="device_reset_word" id="inputResetWord"
                                value="{{ $errors->any() ? old('device_reset_word') : $device->reset_word }}"
@@ -81,11 +81,11 @@
 
             <div class="layout-form-group-h-column">
                 <div class="form-items-l">
+                    @component('components.help')
+                        設定した期間中はタイマーのリセット期限が過ぎても通知は行われません。
+                    @endcomponent
                     <div class="form-item-group">
                         <label for="inputSuspendStartAt">{{ __('validation.attributes.device_suspend_term') }}
-                            @component('components.help')
-                                設定した期間中はタイマーのリセット期限が過ぎても通知は行われません。
-                            @endcomponent
                         </label>
                         <div class="form-items-align-h">
                             <flat-pickr

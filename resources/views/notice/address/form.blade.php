@@ -22,14 +22,11 @@
 
             <div class="layout-form-group-h-column">
                 <div class="form-items-l">
-
+                    @component('components.help')
+                        承認依頼メールの送信後および承認完了後は変更できません。
+                    @endcomponent
                     <div class="form-item-group{{ !$contact->enableEditEmail() ? ' state-disp-only' : '' }}">
-                        <label for="inputEmail" class="mark-required">
-                            {{ __('validation.attributes.contact_email') }}
-                            @component('components.help')
-                                承認依頼メールの送信後および承認完了後は変更できません。
-                            @endcomponent
-                        </label>
+                        <label for="inputEmail" class="mark-required">{{ __('validation.attributes.contact_email') }}</label>
                         @if($contact->enableEditEmail())
                             <input type="text" name="contact_email" id="inputEmail" value="{{ $errors->any() ? old('contact_email') : $contact->email }}" placeholder="{{ __('label.placeholder.email') }}" />
                         @else
@@ -69,12 +66,11 @@
                     </div>
 
                     @if($contact->id)
+                    @component('components.help', ['type' => 'alert'])
+                        【注意】承認依頼メールは連続して送信できません。({{ config('specs.send_contacts_verify_interval') }}分に1回までです)
+                    @endcomponent
                     <div class="form-item-group state-disp-only">
-                        <label for="">{{ __('承認依頼メール送信日') }}
-                            @component('components.help', ['type' => 'alert'])
-                                【注意】承認依頼メールは連続して送信できません。({{ config('specs.send_contacts_verify_interval') }}分に1回までです)
-                            @endcomponent
-                        </label>
+                        <label for="">{{ __('承認依頼メール送信日') }}</label>
                         <input type="text" name="" id="" value="{{ $contact->getDate('send_verify_at') }}" placeholder="" disabled />
 
                         <div class="form-item-right">
@@ -95,12 +91,12 @@
                                 </li>
                             </ul>
                             @else
-                                @component('components.help', ['type' => 'alert'])
-                                    {{ __('message.error.send_verify_request', ['minutes' => config('specs.send_contacts_verify_interval')]) }}
-                                @endcomponent
                                 <a href="#"
                                    @click.prevent=""
                                    class="btn btn-inline-no-icon btn-disabled">{{ __('label.btn.send_verify_request') }}</a>
+                                @component('components.help', ['type' => 'alert'])
+                                    {{ __('message.error.send_verify_request', ['minutes' => config('specs.send_contacts_verify_interval')]) }}
+                                @endcomponent
                             @endif
                         </div>
                     </div>

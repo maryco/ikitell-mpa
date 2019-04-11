@@ -51,11 +51,11 @@
 
             <div class="layout-form-group-h-column">
                 <div class="form-items-l">
+                    @component('components.help')
+                        設定した期間中はタイマーのリセット期限が過ぎても通知は行われません。
+                    @endcomponent
                     <div class="form-item-group">
                         <label for="">休止期間
-                        @component('components.help')
-                            設定した期間中はタイマーのリセット期限が過ぎても通知は行われません。
-                        @endcomponent
                         </label>
                         <div class="form-items-align-h">
                             <flat-pickr
