@@ -15,9 +15,8 @@
     <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="{{ asset('favicon.ico') }}" >
     <link rel="apple-touch-icon" type="image/png" href="{{ asset('apple-touch-icon-180x180.png') }}">
     <link rel="icon" type="image/png" href="{{ asset('icon-192x192.png') }}">
-    <link href="https://cdn.jsdelivr.net/npm/animate.css@3.5.1" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" href="{{ mix('/css/app.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/ikitell.css') }}">
+{{--    <link href="https://cdn.jsdelivr.net/npm/animate.css@3.5.1" rel="stylesheet" type="text/css">--}}
+    <link rel="stylesheet" href="{{ mix('/css/styles.css') }}">
 
     <title>@yield('pageTitle') | Ikitell.me - I'm still alive!</title>
 </head>
