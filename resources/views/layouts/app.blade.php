@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="seems-ie" content="{{ is_seems_ie() ? 1 : 0 }}">
-    <meta content="@yield('pageTitle') | Ikitell" name="title">
+    <meta content="@yield('pageTitle') | Ikitell-Me" name="title">
     <meta content="Ikitell.meは「おひとりさま」の不測の事態を誰かにお知らせするための自己防衛サービスです" name="description">
     <meta content="ひとり暮らし,孤独死" name="keywords">
 
