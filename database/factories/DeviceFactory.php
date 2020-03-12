@@ -5,6 +5,9 @@ use \App\Models\Entities\Device as Device;
 
 $factory->define(\App\Models\Entities\Device::class, function (Faker $faker) {
 
+    // TODO: Fix problem  $faker->text() in php7.4
+    //  "ErrorException: implode(): Passing glue string after array is deprecated. Swap the parameters"
+    //  @see https://laracasts.com/discuss/channels/laravel/laravel-6-and-php-74-seeding-problem?page=1
     return [
         'owner_id' => $faker->randomDigitNotNull,
         'assigned_user_id' => null,
@@ -12,9 +15,9 @@ $factory->define(\App\Models\Entities\Device::class, function (Faker $faker) {
         //'mac_address' => '',
         'type' => $faker->numberBetween(0, 4),
         'rule_id' => null,
-        'name' => $faker->text(200),
+        'name' => '',//$faker->text(200),
         'description' => $faker->word,
-        'reset_word' => $faker->text(50),
+        'reset_word' => '',//$faker->text(50),
         'in_alert' => $faker->boolean,
         'in_suspend' => $faker->boolean,
         'user_name' => $faker->name,
