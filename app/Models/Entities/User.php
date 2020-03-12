@@ -11,6 +11,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
@@ -118,7 +119,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return 'unknown';
         }
 
-        return array_first(array_keys($filtered)) ?: 'unknown';
+        return Arr::first(array_keys($filtered)) ?: 'unknown';
     }
 
     /**

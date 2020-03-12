@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Arr;
 
 class BaseSearchRequest extends FormRequest
 {
@@ -59,7 +60,7 @@ class BaseSearchRequest extends FormRequest
         switch ($key) {
             case 'sort_direction':
                 $value = (in_array($value, ['desc', 'asc'], true)) ? $value
-                    : array_get($this->defaultConditions, 'sort_direction', 'desc');
+                    : Arr::get($this->defaultConditions, 'sort_direction', 'desc');
                 break;
 
             default:

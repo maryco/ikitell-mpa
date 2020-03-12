@@ -81,7 +81,7 @@
         <li><a href="{{ route('terms') }}">{{ __('label.link.terms') }}</a></li>
         <li><a href="{{ route('contact') }}">{{ __('label.link.contact') }}</a></li>
     </ul>
-    <p>Copyright 2019 {{ \Illuminate\Support\Str::upper(config('app.name')) }} <span class="sp-break">All Rights Reserved</span></p>
+    <p>Copyright 2020 {{ \Illuminate\Support\Str::upper(config('app.name')) }} <span class="sp-break">All Rights Reserved</span></p>
 </footer>
 @show
 
