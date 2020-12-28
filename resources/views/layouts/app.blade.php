@@ -12,9 +12,10 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="{{ asset('favicon.ico') }}" >
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
     <link rel="apple-touch-icon" type="image/png" href="{{ asset('apple-touch-icon-180x180.png') }}">
-    <link rel="icon" type="image/png" href="{{ asset('icon-192x192.png') }}">
+    <link rel="icon" type="image/vnd.microsoft.icon" href="{{ asset('favicon.ico') }}" >
+    <link rel="icon" href="{{ asset('icon.svg') }}" type="image/svg+xml" sizes="any">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,400i,500,700">
     <link rel="stylesheet" href="https://fonts.googleapis.com/earlyaccess/notosansjp.css">
     <link rel="stylesheet" href="{{ mix('/css/styles.css') }}">
