@@ -177,7 +177,10 @@ class User extends Authenticatable implements MustVerifyEmail
             $verifyUrl = URL::temporarySignedRoute(
                 'verification.verify',
                 Carbon::now()->addMinutes(config('specs.verify_limit.account')),
-                ['id' => $user->getKey()]
+                [
+                    'id' => $user->getKey(),
+                    'hash' => sha1($this->getEmailForVerification())
+                ]
             );
 
             return (new MailMessage())
