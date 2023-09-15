@@ -1,4 +1,10 @@
 <?php
+
+namespace Database\Seeders\Develop;
+
+use App\Models\Entities\User;
+use Database\Seeders\SeederBase;
+
 /**
  * Class TestUserSeeder
  * php artisan db:seed --class=TestUserSeeder
@@ -7,7 +13,7 @@
 class DevUserSeeder extends SeederBase
 {
     /**
-     * Run the database seeds.
+     * Run the database seeders.
      *
      * @return void
      */
@@ -25,7 +31,7 @@ class DevUserSeeder extends SeederBase
                 continue;
             }
 
-            factory(App\Models\Entities\User::class)->create($testUser);
+            User::factory()->create($testUser);
         }
     }
 }

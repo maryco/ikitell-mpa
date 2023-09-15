@@ -3,14 +3,13 @@
 namespace App\Models\Entities;
 
 use Carbon\Carbon;
-use Illuminate\Contracts\Support\Htmlable;
+use Database\Factories\DeviceFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Log;
 
 class Device extends BaseModel
 {
-    use SoftDeletes, DeviceImage;
+    use SoftDeletes, DeviceImage, HasFactory;
 
     /**
      * The cache key for users devices.
@@ -43,6 +42,14 @@ class Device extends BaseModel
     protected $dates = [
         'deleted_at', 'suspend_start_at', 'suspend_end_at'
     ];
+
+    /**
+     * @return DeviceFactory
+     */
+    protected static function newFactory(): DeviceFactory
+    {
+        return DeviceFactory::new();
+    }
 
     /**
      * @var null|\ArrayObject

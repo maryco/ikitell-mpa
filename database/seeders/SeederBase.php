@@ -1,4 +1,7 @@
 <?php
+
+namespace Database\Seeders;
+
 /**
  * Variables for TEST data
  */

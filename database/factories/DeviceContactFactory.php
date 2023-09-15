@@ -1,10 +1,22 @@
 <?php
 
-use Faker\Generator as Faker;
+namespace Database\Factories;
 
-$factory->define(\App\Models\Entities\DeviceContact::class, function (Faker $faker) {
-    return [
-        'device_id' => $faker->randomDigitNotNull,
-        'contact_id' => $faker->randomDigitNotNull,
-    ];
-});
+use App\Models\Entities\DeviceContact;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+class DeviceContactFactory extends Factory
+{
+    protected $model = DeviceContact::class;
+
+    /**
+     * @return array
+     */
+    public function definition(): array
+    {
+        return [
+            'device_id' => $this->faker->randomDigitNotNull,
+            'contact_id' => $this->faker->randomDigitNotNull,
+        ];
+    }
+}

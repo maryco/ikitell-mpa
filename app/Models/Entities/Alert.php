@@ -2,11 +2,14 @@
 
 namespace App\Models\Entities;
 
+use Database\Factories\AlertFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
 
 class Alert extends Model
 {
+    use HasFactory;
+
     /**
      * The type of email address.
      */
@@ -64,6 +67,14 @@ class Alert extends Model
     public function device()
     {
         return $this->belongsTo('App\Models\Entities\Device', 'device_id', 'id');
+    }
+
+    /**
+     * @return AlertFactory
+     */
+    protected static function newFactory(): AlertFactory
+    {
+        return AlertFactory::new();
     }
 
     /**

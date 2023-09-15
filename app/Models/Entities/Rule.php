@@ -2,10 +2,13 @@
 
 namespace App\Models\Entities;
 
-use Illuminate\Database\Eloquent\Model;
+use Database\Factories\RuleFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Rule extends BaseModel
 {
+    use HasFactory;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -22,6 +25,14 @@ class Rule extends BaseModel
     public function device()
     {
         return $this->hasMany('App\Models\Entities\Device', 'rule_id');
+    }
+
+    /**
+     * @return RuleFactory
+     */
+    protected static function newFactory(): RuleFactory
+    {
+        return RuleFactory::new();
     }
 
     /**

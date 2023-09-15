@@ -4,8 +4,10 @@ namespace App\Models\Entities;
 
 use App\Notifications\DeviceResumedNotification;
 use Carbon\Carbon;
+use Database\Factories\UserFactory;
 use Illuminate\Auth\Notifications\ResetPassword as ResetPasswordMail;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -17,7 +19,7 @@ use Illuminate\Support\Facades\URL;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use Notifiable, SoftDeletes;
+    use Notifiable, SoftDeletes, HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -53,6 +55,14 @@ class User extends Authenticatable implements MustVerifyEmail
             $model->email = sprintf('%s_%s', $model->email, now()->timestamp);
             $model->save();
         });
+    }
+
+    /**
+     * @return UserFactory
+     */
+    protected static function newFactory(): UserFactory
+    {
+        return UserFactory::new();
     }
 
     /**

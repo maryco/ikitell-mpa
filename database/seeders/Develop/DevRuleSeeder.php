@@ -1,4 +1,10 @@
 <?php
+
+namespace Database\Seeders\Develop;
+
+use App\Models\Entities\Rule;
+use Database\Seeders\SeederBase;
+
 /**
  * Class TestRuleSeeder
  * php artisan db:seed --class=DevRuleSeeder
@@ -19,7 +25,7 @@ class DevRuleSeeder extends SeederBase
     ];
 
     /**
-     * Run the database seeds.
+     * Run the database seeders.
      *
      * @return void
      */
@@ -37,7 +43,7 @@ class DevRuleSeeder extends SeederBase
         foreach ($this->testRules as $testRule) {
             $testRule['user_id'] = $basicUser->id;
 
-            factory(App\Models\Entities\Rule::class)->create($testRule);
+            Rule::factory()->create($testRule);
         }
     }
 }

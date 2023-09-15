@@ -2,17 +2,18 @@
 
 namespace App\Models\Entities;
 
-use App\Notifications\AlertNotification;
 use App\Notifications\VerifiedContactsNotification;
 use App\Notifications\VerifyRequestContactsNotification;
 use Carbon\Carbon;
+use Database\Factories\ContactFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
 
 class Contact extends BaseModel
 {
-    use SoftDeletes, Notifiable;
+    use SoftDeletes, Notifiable, HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -60,6 +61,14 @@ class Contact extends BaseModel
     public function device()
     {
         return $this->belongsToMany('App\Models\Entities\Device', 'device_contact');
+    }
+
+    /**
+     * @return ContactFactory
+     */
+    protected static function newFactory(): ContactFactory
+    {
+        return ContactFactory::new();
     }
 
     /**

@@ -1,15 +1,26 @@
 <?php
 
-use Faker\Generator as Faker;
+namespace Database\Factories;
 
-$factory->define(\App\Models\Entities\Contact::class, function (Faker $faker) {
+use App\Models\Entities\Contact;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
-    return [
-        'user_id' => null,
-        'email' => $faker->email,
-        'name' => $faker->text(200),
-        'description' => $faker->word,
-        'email_verified_at' => $faker->randomElement([null, now(), $faker->dateTime]),
-        'send_verify_at' => $faker->randomElement([null, now(), $faker->dateTime])
-    ];
-});
+class ContactFactory extends Factory
+{
+    protected $model = Contact::class;
+
+    /**
+     * @return array
+     */
+    public function definition(): array
+    {
+        return [
+            'user_id' => null,
+            'email' => $this->faker->email,
+            'name' => $this->faker->text(),
+            'description' => $this->faker->word,
+            'email_verified_at' => $this->faker->randomElement([null, now(), $this->faker->dateTime]),
+            'send_verify_at' => $this->faker->randomElement([null, now(), $this->faker->dateTime])
+        ];
+    }
+}

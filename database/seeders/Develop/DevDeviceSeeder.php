@@ -1,4 +1,10 @@
 <?php
+
+namespace Database\Seeders\Develop;
+
+use App\Models\Entities\Device;
+use Database\Seeders\SeederBase;
+
 /**
  * Class TestDeviceSeeder
  * php artisan db:seed --class=DevDeviceSeeder
@@ -47,7 +53,7 @@ class DevDeviceSeeder extends SeederBase
     ];
 
     /**
-     * Run the database seeds.
+     * Run the database seeders.
      *
      * @return void
      */
@@ -107,6 +113,6 @@ class DevDeviceSeeder extends SeederBase
             ? \Carbon\Carbon::parse($deviceData['reported_at'])->getTimestamp()
             : null;
 
-        factory(App\Models\Entities\Device::class)->create($deviceData);
+        Device::factory()->create($deviceData);
     }
 }

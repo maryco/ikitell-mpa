@@ -183,7 +183,7 @@ class ConcernMessage
     public function renderAsMarkDown($notifiable = null)
     {
         if (!$notifiable) {
-            $notifiable = factory(Contact::class)->make([
+            $notifiable = Contact::factory()->make([
                 'email' => __('alert.mock.to_email'),
                 'name' => __('alert.mock.to_name'),
             ]);

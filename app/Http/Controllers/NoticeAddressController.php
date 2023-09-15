@@ -200,7 +200,7 @@ class NoticeAddressController extends Controller
 
         $mail = new VerifyRequestContactsNotification($contact);
 
-        $mockNotifiable = factory(Contact::class)->make([
+        $mockNotifiable = Contact::factory()->make([
             'id' => $contact->id,
             'name' => $contact->name,
             'email' => 'mock@example.com',

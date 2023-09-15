@@ -1,4 +1,10 @@
 <?php
+
+namespace Database\Seeders\Develop;
+
+use App\Models\Entities\Contact;
+use Database\Seeders\SeederBase;
+
 /**
  * Class TestContactSeeder
  * php artisan db:seed --class=DevContactSeeder
@@ -56,7 +62,7 @@ class DevContactSeeder extends SeederBase
     ];
 
     /**
-     * Run the database seeds.
+     * Run the database seeders.
      *
      * @return void
      */
@@ -86,7 +92,7 @@ class DevContactSeeder extends SeederBase
                 ? \Carbon\Carbon::parse($contact['deleted_at'])
                 : null;
 
-            factory(App\Models\Entities\Contact::class)->create($contact);
+            Contact::factory()->create($contact);
         }
     }
 }

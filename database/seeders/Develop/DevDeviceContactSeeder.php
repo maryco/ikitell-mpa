@@ -1,4 +1,7 @@
 <?php
+
+namespace Database\Seeders\Develop;
+
 /**
  * Class TestDeviceContactSeeder
  * php artisan db:seed --class=TestDeviceContactSeeder
@@ -6,13 +9,15 @@
 
 use \App\Models\Entities\Device as Device;
 use \App\Models\Entities\Contact as Contact;
+use App\Models\Entities\DeviceContact;
+use Database\Seeders\SeederBase;
 
 class DevDeviceContactSeeder extends SeederBase
 {
     const SEED_TOTAL = 2;
 
     /**
-     * Run the database seeds.
+     * Run the database seeders.
      *
      * @return void
      */
@@ -39,7 +44,7 @@ class DevDeviceContactSeeder extends SeederBase
         $seedCnt = 0;
 
         foreach ($contacts as $contact) {
-            factory(\App\Models\Entities\DeviceContact::class)->create([
+            DeviceContact::factory()->create([
                 'device_id' => $device->id,
                 'contact_id' => $contact->id,
             ]);

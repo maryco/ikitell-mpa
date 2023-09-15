@@ -415,7 +415,7 @@ class DeviceRepository implements DeviceRepositoryInterface
      */
     public function makeMock($data = [])
     {
-        $mock = factory(Device::class)->make(
+        $mock = Device::factory()->make(
             array_merge(__('docs.mock_device'), $data)
         );
 

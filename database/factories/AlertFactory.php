@@ -1,14 +1,26 @@
 <?php
 
-use Faker\Generator as Faker;
+namespace Database\Factories;
 
-$factory->define(\App\Models\Entities\Alert::class, function (Faker $faker) {
-    return [
-        'device_id' => $faker->randomDigitNotNull,
-        'notify_count' => $faker->numberBetween(0, 4),
-        'max_notify_count' => $faker->numberBetween(1, 10),
-        'next_notify_at' => $faker->randomElement([null, now()->getTimestamp(), $faker->unixTime]),
-        'notification_payload' => null,
-        'send_targets' => [],
-    ];
-});
+use App\Models\Entities\Alert;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+class AlertFactory extends Factory
+{
+    protected $model = Alert::class;
+
+    /**
+     * @return array
+     */
+    public function definition(): array
+    {
+        return [
+            'device_id' => $this->faker->randomDigitNotNull,
+            'notify_count' => $this->faker->numberBetween(0, 4),
+            'max_notify_count' => $this->faker->numberBetween(1, 10),
+            'next_notify_at' => $this->faker->randomElement([null, now()->getTimestamp(), $this->faker->unixTime]),
+            'notification_payload' => null,
+            'send_targets' => [],
+        ];
+    }
+}

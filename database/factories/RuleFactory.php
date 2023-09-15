@@ -1,16 +1,27 @@
 <?php
 
-use Faker\Generator as Faker;
+namespace Database\Factories;
 
-$factory->define(\App\Models\Entities\Rule::class, function (Faker $faker) {
+use App\Models\Entities\Rule;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
-    return [
-        'user_id' => $faker->randomDigitNotNull,
-        'name' => $faker->text(200),
-        'description' => $faker->word,
-        'time_limits' => $faker->numberBetween(0, (24 * 7)),
-        'notify_times' => $faker->numberBetween(1, 5),
-        'message_id' => null,
-        'embedded_message' => null,
-    ];
-});
+class RuleFactory extends Factory
+{
+    protected $model = Rule::class;
+
+    /**
+     * @return array
+     */
+    public function definition(): array
+    {
+        return [
+            'user_id' => $this->faker->randomDigitNotNull,
+            'name' => $this->faker->text(200),
+            'description' => $this->faker->word,
+            'time_limits' => $this->faker->numberBetween(0, (24 * 7)),
+            'notify_times' => $this->faker->numberBetween(1, 5),
+            'message_id' => null,
+            'embedded_message' => null,
+        ];
+    }
+}

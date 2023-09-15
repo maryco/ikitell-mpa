@@ -60,7 +60,7 @@ class AlertRepository implements AlertRepositoryInterface
             return null;
         }
 
-        $alert = factory(Alert::class)->make([
+        $alert = Alert::factory()->make([
             'device_id' => $device->id,
             'notify_count' => 0,
             'max_notify_count' => $device->rule->notify_times,
