@@ -4,6 +4,7 @@ namespace Database\Seeders\Develop;
 
 use App\Models\Entities\User;
 use Database\Seeders\SeederBase;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class TestUserSeeder
@@ -17,11 +18,11 @@ class DevUserSeeder extends SeederBase
      *
      * @return void
      */
-    public function run()
+    public function run(): void
     {
         foreach (self::TEST_USERS as $testUser) {
 
-            $user = \App\Models\Entities\User::email($testUser['email'])->first();
+            $user = User::email($testUser['email'])->first();
 
             if ($user) {
                 Log::warning(

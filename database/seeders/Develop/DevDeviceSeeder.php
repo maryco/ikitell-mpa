@@ -4,6 +4,7 @@ namespace Database\Seeders\Develop;
 
 use App\Models\Entities\Device;
 use Database\Seeders\SeederBase;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class TestDeviceSeeder
@@ -15,7 +16,7 @@ class DevDeviceSeeder extends SeederBase
     /**
      * @var array
      */
-    private $testDevices = [
+    private array $testDevices = [
         [
             'type' => 3,
             'name' => 'おれのアイフォン',
@@ -57,7 +58,7 @@ class DevDeviceSeeder extends SeederBase
      *
      * @return void
      */
-    public function run()
+    public function run(): void
     {
         /*
          * Create device for the basic user.
@@ -91,7 +92,7 @@ class DevDeviceSeeder extends SeederBase
      * @param $user
      * @param array $deviceData
      */
-    private function create($user, $deviceData)
+    private function create($user, array $deviceData): void
     {
         $deviceData['owner_id'] = $user->id;
 

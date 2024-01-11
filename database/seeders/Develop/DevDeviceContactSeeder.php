@@ -11,6 +11,7 @@ use \App\Models\Entities\Device as Device;
 use \App\Models\Entities\Contact as Contact;
 use App\Models\Entities\DeviceContact;
 use Database\Seeders\SeederBase;
+use Illuminate\Support\Facades\Log;
 
 class DevDeviceContactSeeder extends SeederBase
 {
@@ -21,7 +22,7 @@ class DevDeviceContactSeeder extends SeederBase
      *
      * @return void
      */
-    public function run()
+    public function run(): void
     {
         /**
          * Create device_contact for the basic user.

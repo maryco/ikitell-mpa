@@ -3,7 +3,9 @@
 namespace Database\Seeders\Develop;
 
 use App\Models\Entities\Contact;
+use Carbon\Carbon;
 use Database\Seeders\SeederBase;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class TestContactSeeder
@@ -12,7 +14,7 @@ use Database\Seeders\SeederBase;
 
 class DevContactSeeder extends SeederBase
 {
-    private $testContacts = [
+    private array $testContacts = [
         [
             'name' => '通知先01(未承認)',
             'email' => 'contact001@dev.ikitell.me',
@@ -66,7 +68,7 @@ class DevContactSeeder extends SeederBase
      *
      * @return void
      */
-    public function run()
+    public function run(): void
     {
         /**
          * Create contacts for the basic user.
@@ -81,15 +83,15 @@ class DevContactSeeder extends SeederBase
             $contact['user_id'] = $basicUser->id;
 
             $contact['email_verified_at'] = (array_get($contact, 'email_verified_at', null))
-                ? \Carbon\Carbon::parse($contact['email_verified_at'])
+                ? Carbon::parse($contact['email_verified_at'])
                 : null;
 
             $contact['send_verify_at'] = (array_get($contact, 'send_verify_at', null))
-                ? \Carbon\Carbon::parse($contact['send_verify_at'])
+                ? Carbon::parse($contact['send_verify_at'])
                 : null;
 
             $contact['deleted_at'] = (array_get($contact, 'deleted_at', null))
-                ? \Carbon\Carbon::parse($contact['deleted_at'])
+                ? Carbon::parse($contact['deleted_at'])
                 : null;
 
             Contact::factory()->create($contact);

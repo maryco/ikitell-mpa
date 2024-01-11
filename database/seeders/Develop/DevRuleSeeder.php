@@ -4,6 +4,7 @@ namespace Database\Seeders\Develop;
 
 use App\Models\Entities\Rule;
 use Database\Seeders\SeederBase;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class TestRuleSeeder
@@ -12,7 +13,7 @@ use Database\Seeders\SeederBase;
 
 class DevRuleSeeder extends SeederBase
 {
-    private $testRules = [
+    private array $testRules = [
         [
             'name' => '通知設定01',
         ],
@@ -29,7 +30,7 @@ class DevRuleSeeder extends SeederBase
      *
      * @return void
      */
-    public function run()
+    public function run(): void
     {
         /**
          * Create rules for the basic user.
