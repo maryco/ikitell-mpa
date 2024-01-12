@@ -1,4 +1,3 @@
 *.swp
-
 db/data/*
 !db/conf.d
