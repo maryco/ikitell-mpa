@@ -11,12 +11,23 @@
 |
 */
 
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
+
 Route::get('/', function () {
     if (Auth::check()) {
         return redirect(route('home'));
     }
 
     return view('welcome');
+});
+
+// Static route for Widget SPA
+Route::prefix('widget')->group(function () {
+    Route::get('/{any}', function () {
+        return File::get(public_path() . '/widget/index.html');
+    });
 });
 
 Auth::routes(['verify' => true]);
