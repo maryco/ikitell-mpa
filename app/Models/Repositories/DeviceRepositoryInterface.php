@@ -2,6 +2,8 @@
 namespace App\Models\Repositories;
 
 use App\Models\Entities\Device;
+use App\Models\Entities\User;
+use Illuminate\Database\Eloquent\Collection;
 
 interface DeviceRepositoryInterface extends BaseRepositoryInterface
 {
@@ -11,22 +13,22 @@ interface DeviceRepositoryInterface extends BaseRepositoryInterface
      * NOTE: Depends on user's subscription type.
      * (refer owner_id or assigned_user_id)
      *
-     * @param $user
-     * @param $deviceId
+     * @param User $user
+     * @param int $deviceId
      * @return mixed
      */
-    public function findByUser($user, $deviceId);
+    public function findByUser(User $user, int $deviceId);
 
     /**
      * Get user's devices.
-     * @see app/Models/Repositories/DeviceRepositoryInterface.php:9
-     *
      * @param $user
      * @param bool $withRule
      * @param bool $withAlert
      * @return mixed
+     *@see app/Models/Repositories/DeviceRepositoryInterface.php:9
+     *
      */
-    public function getByUser($user, $withRule = false, $withAlert = false);
+    public function getByUser($user, bool $withRule = false, bool $withAlert = false);
 
     /**
      * Get user's device detail information for shown at the dashboard.
@@ -52,9 +54,9 @@ interface DeviceRepositoryInterface extends BaseRepositoryInterface
      * Store by given data.
      *
      * @param $data
-     * @return mixed
+     * @return Device
      */
-    public function store($data);
+    public function store($data): Device;
 
     /**
      * Delete the specified device
@@ -69,44 +71,44 @@ interface DeviceRepositoryInterface extends BaseRepositoryInterface
     /**
      * Get all active devices except in_alert and in_suspend.
      *
-     * @param $limit
-     * @return mixed
+     * @param int $limit
+     * @return Collection<Device>
      */
-    public function getForInspection($limit = 10);
+    public function getForInspection(int $limit = 10): Collection;
 
     /**
-     * Update specific device to the suspend.
+     * Update specific device to suspend.
      * And set report_reserved_at into date of the suspend_end_at.
      *
      * @param $deviceId
-     * @return mixed
+     * @return bool
      */
-    public function beginSuspend($deviceId);
+    public function beginSuspend($deviceId): bool;
 
     /**
      * Update specific device to resume.
      *
-     * @param $devieId
+     * @param int $deviceId
      * @return bool
      */
-    public function endSuspend($deviceId);
+    public function endSuspend(int $deviceId): bool;
 
     /**
      * Create a new alert from the device.
      * And update the device to alert mode.
      *
-     * @param $deviceId
-     * @return bool|mixed
+     * @param int $deviceId
+     * @return bool
      */
-    public function issueAlert($deviceId);
+    public function issueAlert(int $deviceId): bool;
 
     /**
-     * Get the devices which in the suspending and can be resume.
+     * Get the devices which in the suspending and can be resuming.
      *
      * @param int $limit
-     * @return mixed
+     * @return Collection<Device>
      */
-    public function getForResume($limit = 10);
+    public function getForResume(int $limit = 10): Collection;
 
     /**
      * Get the specified users device ids from cache.

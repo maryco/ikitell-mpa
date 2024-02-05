@@ -3,15 +3,16 @@ namespace App\Models\Repositories;
 
 
 use App\Models\Entities\ConcernMessage;
+use ArrayObject;
 use Illuminate\Support\Arr;
 
 class MessageRepository implements MessageRepositoryInterface
 {
     /**
      * @see config/alert.php
-     * @var array
+     * @var mixed
      */
-    private $templateConfig;
+    private mixed $templateConfig;
 
     /**
      * MessageRepository constructor.
@@ -33,27 +34,30 @@ class MessageRepository implements MessageRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\MessageRepositoryInterface::findById
+     * @inheritDoc
      */
-    public function findById($id, $userId)
+    public function findById(int $id, int $userId): ?ConcernMessage
     {
-        $template = Arr::get($this->templateConfig, $id, null);
-        $template['user_id'] = $userId;
+        $template = Arr::get($this->templateConfig, $id);
+        if (!$template) {
+            return null;
+        }
 
-        return ($template) ? $this->makeModel($template) : null;
+        $template['user_id'] = $userId;
+        return $this->makeModel($template);
     }
 
     /**
-     * @see \App\Models\Repositories\MessageRepositoryInterface::getTemplate
+     * @inheritDoc
      */
-    public function getTemplate()
+    public function getTemplate(): array
     {
         $templates = [];
 
         foreach ($this->templateConfig as $template) {
-            $templates[] = new \ArrayObject(
+            $templates[] = new ArrayObject(
                 $this->makeModel($template)->getBaseData(),
-                \ArrayObject::ARRAY_AS_PROPS
+                ArrayObject::ARRAY_AS_PROPS
             );
         }
 

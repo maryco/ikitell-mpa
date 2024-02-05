@@ -11,25 +11,26 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Markdown;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\URL;
+use Throwable;
 
 class VerifyRequestContactsNotification extends VerifyEmail implements ShouldQueue, ShouldLogging
 {
     use Queueable;
 
     /**
-     * The queue name for a job.queue
+     * The queue name for 'jobs.queue'
      */
-    const QUEUE_NAME = 'default';//'verify-request';
+    public const QUEUE_NAME = 'default'; //'verify-request';
 
     /**
      * The view for mail
      */
-    const VIEW = 'emails.contact.verify';
+    public const VIEW = 'emails.contact.verify';
 
     /**
      * @var Contact
      */
-    private $contact;
+    private Contact $contact;
 
     /**
      * Create a new notification instance.
@@ -39,17 +40,15 @@ class VerifyRequestContactsNotification extends VerifyEmail implements ShouldQue
     public function __construct($contact)
     {
         $this->contact = $contact;
-
         $this->queue = self::QUEUE_NAME;
     }
 
     /**
      * Get the notification's delivery channels.
      *
-     * @param  mixed  $notifiable
-     * @return array
+     * @inheritDoc
      */
-    public function via($notifiable)
+    public function via($notifiable): array|string
     {
         return ['mail'];
     }
@@ -57,10 +56,9 @@ class VerifyRequestContactsNotification extends VerifyEmail implements ShouldQue
     /**
      * Get the mail representation of the notification.
      *
-     * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
+     * @inheritDoc
      */
-    public function toMail($notifiable)
+    public function toMail($notifiable): MailMessage
     {
         if ($notifiable instanceof Contact) {
             $verifyUrl = $this->verificationUrl($notifiable);
@@ -76,7 +74,7 @@ class VerifyRequestContactsNotification extends VerifyEmail implements ShouldQue
                 [
                     'contact' => $this->contact,
                     'user' => $this->contact->user,
-                    'isCopy' => $notifiable->email === $this->contact->user->email
+                    'isCopy' => $notifiable->email === $this->contact->user?->email
                 ]
             );
     }
@@ -84,9 +82,9 @@ class VerifyRequestContactsNotification extends VerifyEmail implements ShouldQue
     /**
      * @param mixed $notifiable
      * @return string
-     * @see \Illuminate\Auth\Notifications\VerifyEmail::verificationUrl
+     * @see VerifyEmail::verificationUrl
      */
-    protected function verificationUrl($notifiable)
+    protected function verificationUrl($notifiable): string
     {
         return URL::temporarySignedRoute(
             'notice.address.verify',
@@ -98,10 +96,10 @@ class VerifyRequestContactsNotification extends VerifyEmail implements ShouldQue
     /**
      * Get the array representation of the notification.
      *
-     * @param  mixed  $notifiable
-     * @return array
+     * @param mixed $notifiable
+     * @return array<string, mixed>
      */
-    public function toArray($notifiable)
+    public function toArray(mixed $notifiable): array
     {
         return [
             'contact' => $this->contact,
@@ -115,11 +113,11 @@ class VerifyRequestContactsNotification extends VerifyEmail implements ShouldQue
     /**
      * Render the mail as HTML.
      *
-     * @param $notifiable
-     * @param $disableLink (Replace '#' all included href attribute.)
+     * @param mixed $notifiable
+     * @param ?bool $disableLink (Replace '#' all included href attribute.)
      * @return mixed
      */
-    public function renderAsMarkdown($notifiable, $disableLink = true)
+    public function renderAsMarkdown(mixed $notifiable, bool $disableLink = true): mixed
     {
         $view = app(Markdown::class)->render(
             $this->toMail($notifiable)->markdown,
@@ -135,9 +133,9 @@ class VerifyRequestContactsNotification extends VerifyEmail implements ShouldQue
      * @param $notifiable
      * @return string
      *
-     * @throws \Throwable
+     * @throws Throwable
      */
-    public function renderAsText($notifiable)
+    public function renderAsText($notifiable): string
     {
         return view(
             self::VIEW,
@@ -148,15 +146,11 @@ class VerifyRequestContactsNotification extends VerifyEmail implements ShouldQue
     /**
      * Logging the notification detail.
      *
-     * @see \App\Notifications\ShouldLogging::putLog
+     * @inheritDoc
      */
-    public function putLog($notifiable, $jobStatus)
+    public function putLog(mixed $notifiable, int $jobStatus): void
     {
         if (!($notifiable instanceof Contact)) {
-            return;
-        }
-
-        if (!$this->contact) {
             return;
         }
 

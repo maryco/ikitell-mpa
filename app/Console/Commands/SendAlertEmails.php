@@ -2,21 +2,25 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Traits\GetArgument;
 use App\Models\Entities\Alert;
 use App\Models\Repositories\AlertRepositoryInterface;
 use App\Models\Repositories\ContactRepositoryInterface;
 use App\Models\Repositories\UserRepositoryInterface;
 use App\Notifications\AlertNotification;
+use ArrayObject;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 
 class SendAlertEmails extends Command
 {
+    use GetArgument;
+
     /**
      * The limit of select devices per process.
      */
-    const SELECT_LIMIT = 5;
+    public const SELECT_LIMIT = 5;
 
     /**
      * The name and signature of the console command.
@@ -30,22 +34,22 @@ class SendAlertEmails extends Command
      *
      * @var string
      */
-    protected $description = 'Send alert notification via database table alerts.';
+    protected $description = 'Send alert notification from alerts data.';
 
     /**
      * @var AlertRepositoryInterface
      */
-    protected $alertRepo;
+    protected AlertRepositoryInterface $alertRepo;
 
     /**
      * @var ContactRepositoryInterface
      */
-    protected $contactRepo;
+    protected ContactRepositoryInterface $contactRepo;
 
     /**
      * @var UserRepositoryInterface
      */
-    protected $userRepo;
+    protected UserRepositoryInterface $userRepo;
 
     /**
      * Create a new command instance.
@@ -65,13 +69,11 @@ class SendAlertEmails extends Command
     }
 
     /**
-     * Execute the console command.
-     *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
-        $alerts = $this->alertRepo->getActive($this->argument('limit') ?? self::SELECT_LIMIT);
+        $alerts = $this->alertRepo->getActive($this->getArgumentInt('limit', self::SELECT_LIMIT));
 
         if (count($alerts) === 0) {
             Log::info('No notifiable alerts.');
@@ -81,7 +83,6 @@ class SendAlertEmails extends Command
             $targets = $this->getShouldSendTarget($alert);
 
             foreach ($targets as $notifiable) {
-
                 /**
                  * NOTE: If sets like below, Logging seems use
                  * latest Alert Model when Queue executed.
@@ -89,7 +90,7 @@ class SendAlertEmails extends Command
                  *
                  * $notification->setAlert($alert);
                  */
-                $alertCopy = new \ArrayObject($alert->toArray(), \ArrayObject::ARRAY_AS_PROPS);
+                $alertCopy = new ArrayObject($alert->toArray(), ArrayObject::ARRAY_AS_PROPS);
 
                 $notification = $alert->notification_payload;
                 if ($notification instanceof AlertNotification) {
@@ -99,10 +100,10 @@ class SendAlertEmails extends Command
                 $notifiable->notify($notification);
             }
 
+            // TODO: 送信先「0」の場合は強制終了(削除)
+
             $this->alertRepo->updateForNext($alert->id);
         }
-
-        return;
     }
 
     /**
@@ -113,47 +114,51 @@ class SendAlertEmails extends Command
      * When first alert, return only the device owner user
      * and assigned user.
      *
-     * @return array
+     * @param Alert $alert
+     * @return array<int, mixed>
      */
-    private function getShouldSendTarget($alert)
+    private function getShouldSendTarget(Alert $alert): array
     {
         $targets = [];
 
         if ($alert->notify_count > $alert->max_notify_count) {
-            Log::warning('This alert already notify max. [%id]', ['%id' => $alert->id]);
+            Log::warning('This alert already notify max.', ['alertId' => $alert->id]);
             return $targets;
         }
 
+        $isValidUser = true;
         if ($alert->notify_count >= 0) {
-            $filtered = Arr::where($alert->getSendTarget(), function ($item, $idx) {
-                return in_array(intval($item['type']), [Alert::TARGET_TYPE_OWNER, Alert::TARGET_TYPE_USER], true);
+            $filtered = Arr::where($alert->getSendTarget(), static function ($item, $idx) {
+                return in_array((int)$item['type'], [Alert::TARGET_TYPE_OWNER, Alert::TARGET_TYPE_USER], true);
             });
 
             foreach ($filtered as $target) {
                 $user = $this->userRepo->findByEmail($target['email']);
                 if (!$user) {
-                    Log::warning(
-                        'The alert includes a not found user. [%alert]',
-                        ['%alert' => $alert->id]
-                    );
-                    continue;
+                    Log::warning('The alert includes invalid user.', ['alertId' => $alert->id]);
+                    $isValidUser = false;
+                    break;
                 }
 
                 $targets[] = $user;
             }
         }
 
+        if (!$isValidUser) {
+            return [];
+        }
+
         if ($alert->notify_count >= 1) {
-            $filtered = Arr::where($alert->getSendTarget(), function ($item, $idx) {
-                return intval($item['type']) === Alert::TARGET_TYPE_CONTACTS;
+            $filtered = Arr::where($alert->getSendTarget(), static function ($item, $idx) {
+                return (int)$item['type'] === Alert::TARGET_TYPE_CONTACTS;
             });
 
             foreach ($filtered as $target) {
                 $contact = $this->contactRepo->findByEmail($target['email']);
                 if (!$contact || !$contact->isVerified()) {
                     Log::warning(
-                        'The alert has a deleted (or not verified) contacts. [%alert]',
-                        ['%alert' => $alert->id]
+                        'The alert has deleted (or not verified) contacts.',
+                        ['alertId' => $alert->id, 'contactId' => $contact?->id]
                     );
                     continue;
                 }

@@ -2,34 +2,39 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DeviceLog\ReportingType;
 use App\Http\Requests\DeviceStoreRequest;
 use App\Models\Entities\DeviceDashboard;
 use App\Models\Repositories\ContactRepositoryInterface;
 use App\Models\Repositories\DeviceRepositoryInterface;
 use App\Models\Repositories\RuleRepositoryInterface;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Redirector;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response;
 
 class DeviceController extends Controller
 {
     /**
      * @var DeviceRepositoryInterface
      */
-    private $deviceRepo;
+    private DeviceRepositoryInterface $deviceRepo;
 
     /**
      * @var RuleRepositoryInterface
      */
-    private $ruleRepo;
+    private RuleRepositoryInterface $ruleRepo;
 
     /**
      * @var ContactRepositoryInterface
      */
-    private $contactRepo;
+    private ContactRepositoryInterface $contactRepo;
 
     /**
      * DeviceController constructor.
@@ -43,7 +48,7 @@ class DeviceController extends Controller
         RuleRepositoryInterface $ruleRepo,
         ContactRepositoryInterface $contactRepo
     ) {
-        $this->middleware('throttle:6,1')->only('device.report');
+        $this->middleware('throttle:6,1')->only('report');
 
         $this->deviceRepo = $deviceRepo;
         $this->ruleRepo = $ruleRepo;
@@ -53,9 +58,9 @@ class DeviceController extends Controller
     /**
      * Get device list
      *
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|View
      */
-    public function getList()
+    public function getList(): Factory|View
     {
         $devices = $this->deviceRepo->getByUser(Auth::user(), false, false);
 
@@ -66,19 +71,20 @@ class DeviceController extends Controller
      * Show create/edit form.
      *
      * @param null $id
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|View
      */
-    public function showForm($id = null)
+    public function showForm($id = null): Factory|View
     {
         $device = $this->deviceRepo->makeModel(
             ['owner_id' => Auth::id()]
         );
 
-        if (Route::getCurrentRoute()->named('device.edit')) {
-            $device = $this->deviceRepo->findByUser(Auth::user(), $id);
-            if (!$device) {
-                abort('404');
-            }
+        if (Route::getCurrentRoute()?->named('device.edit')) {
+            $device = $this->deviceRepo->findByUser(
+                auth_provided_user(),
+                $id ?? abort(Response::HTTP_NOT_FOUND)
+            );
+            abort_if(!$device, Response::HTTP_NOT_FOUND);
         }
 
         $rules = DeviceStoreRequest::rulesToArray(
@@ -87,7 +93,7 @@ class DeviceController extends Controller
 
         $contacts = DeviceStoreRequest::contactsToArray(
             $this->contactRepo->getByUserId(Auth::id(), true),
-            old('device_notification_targets', Arr::pluck($device->contact->toArray(), 'id'))
+            old('device_notification_targets', Arr::pluck($device->contacts->toArray(), 'id'))
         );
 
         $deviceForm = new DeviceStoreRequest();
@@ -96,50 +102,46 @@ class DeviceController extends Controller
     }
 
     /**
-     * Store the device.
+     * Create or update device.
      *
      * @param DeviceStoreRequest $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @return RedirectResponse|Redirector
      */
-    public function store(DeviceStoreRequest $request)
+    public function store(DeviceStoreRequest $request): Redirector|RedirectResponse
     {
-        //Log::debug('REQUEST ALL = []', ['' => $request->all()]);
+        $appInfoKey = self::ACTION_RESULT_KEY_SAVE;
+        $targetId = Route::getCurrentRoute()?->parameter('id');
 
-        $appInfoKey = 'saved';
-        $targetId = Route::getCurrentRoute()->parameter('id', null);
-
-        if (Route::getCurrentRoute()->named('device.edit')) {
-            $device = $this->deviceRepo->findByUser(Auth::user(), $targetId);
-
-            if (!$device) {
-                abort('404');
-            }
-
-            $appInfoKey = 'edited';
+        if (Route::getCurrentRoute()?->named('device.edit')) {
+            $device = $this->deviceRepo->findByUser(
+                auth_provided_user(),
+                $targetId ?? abort(Response::HTTP_NOT_FOUND)
+            );
+            abort_if(!$device, Response::HTTP_NOT_FOUND);
+            $appInfoKey = self::ACTION_RESULT_KEY_EDIT;
         }
 
         $device = $this->deviceRepo->store(
             array_merge($request->onlyForStore(), ['id' => $targetId])
         );
 
-        return redirect(route('device.edit', ['id' => $device->id]))
-            ->with($appInfoKey, true);
+        return redirect(route('device.edit', ['id' => $device->id]))->with($appInfoKey, true);
     }
 
     /**
      * Delete specific device.
      *
      * @param $deviceId
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @return RedirectResponse|Redirector
      */
-    public function delete($deviceId)
+    public function delete($deviceId): Redirector|RedirectResponse
     {
         // TODO: Create policy
-        if (Auth::user()->isLimited()) {
+        if (Auth::user()?->isLimited()) {
             abort('403');
         }
 
-        $device = $this->deviceRepo->findByUser(Auth::user(), $deviceId);
+        $device = $this->deviceRepo->findByUser(auth_provided_user(), $deviceId);
 
         if (!$device) {
             abort('404');
@@ -152,56 +154,46 @@ class DeviceController extends Controller
     }
 
     /**
-     * Report by the specific device.
-     * NOTE: The request accept ajax only.
+     * Report specific device.
+     * NOTE: The request accept only ajax.
      *
      * @param $deviceId
-     * @return false|string(json)
+     * @return JsonResponse
      */
-    public function report($deviceId)
+    public function report($deviceId): JsonResponse
     {
-        if (!Request::isJson()) {
-            abort(400);
-        }
+        abort_if(!Request::isJson(), Response::HTTP_BAD_REQUEST);
 
-        $device = $this->deviceRepo->findByUser(Auth::user(), $deviceId);
+        $device = $this->deviceRepo->findByUser(auth_provided_user(), $deviceId);
+        abort_if(!$device, Response::HTTP_NOT_FOUND);
 
-        if (!$device) {
-            //Log::debug('Error! Device Not Found! [%id]', ['%id' => $deviceId]);
-            return abort(404);
-        }
-
-        if (!$device->enableReport()) {
-            //Log::debug('Error! Reporting interval [%id]', ['%id' => $deviceId]);
-            return abort(
-                500,
-                __('message.error.report_interval', ['minutes' => config('specs.device_report_interval')])
-            );
-        }
+        abort_if(
+            !$device->enableReport(),
+            Response::HTTP_INTERNAL_SERVER_ERROR,
+            __('message.error.report_interval', ['minutes' => config('specs.device_report_interval')])
+        );
 
         $resultDevice = $this->deviceRepo->report(
             Auth::user(),
             $deviceId,
-            Config::get('codes.report_types.user_web')
+            ReportingType::USER_WEB->value
         );
 
-        return json_encode([
+        return response()->json([
             'message' => '',
             'deviceInfo' => (new DeviceDashboard($resultDevice))->toArray()
         ]);
     }
 
     /**
-     * Mock report for the demo of the report action.
-     * NOTE: The request accept ajax only.
+     * Mock report for demonstration of report actions.
+     * NOTE: The request accept only ajax.
      *
-     * @return false|string(json)
+     * @return JsonResponse
      */
-    public function mockReport()
+    public function mockReport(): JsonResponse
     {
-        if (!Request::isJson()) {
-            abort('400');
-        }
+        abort_if(!Request::isJson(), Response::HTTP_BAD_REQUEST);
 
         $mockDevice = $this->deviceRepo->makeMock([
             'reported_at' => now()->getTimestamp(),
@@ -209,7 +201,7 @@ class DeviceController extends Controller
             'in_suspend' => false
         ]);
 
-        return json_encode([
+        return response()->json([
             'message' => '',
             'deviceInfo' => (new DeviceDashboard($mockDevice))->setDemo(true)->toArray()
         ]);

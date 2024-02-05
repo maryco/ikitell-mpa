@@ -5,22 +5,25 @@ namespace App\Http\Controllers;
 use App\Http\Requests\RuleStoreRequest;
 use App\Models\Repositories\MessageRepositoryInterface;
 use App\Models\Repositories\RuleRepositoryInterface;
-use Illuminate\Http\Request;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response;
 
 class RuleController extends Controller
 {
     /**
      * @var RuleRepositoryInterface
      */
-    private $ruleRepo;
+    private RuleRepositoryInterface $ruleRepo;
 
     /**
      * @var MessageRepositoryInterface
      */
-    private $messageRepo;
+    private MessageRepositoryInterface $messageRepo;
 
     /**
      * RuleController constructor.
@@ -39,9 +42,9 @@ class RuleController extends Controller
     /**
      * Get rule list
      *
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|View
      */
-    public function getList()
+    public function getList(): Factory|View
     {
         $rules = $this->ruleRepo->getByUserId(Auth::id());
 
@@ -52,17 +55,15 @@ class RuleController extends Controller
      * Show create/edit form.
      *
      * @param null $id
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|View
      */
-    public function showForm($id = null)
+    public function showForm($id = null): Factory|View
     {
         $rule = $this->ruleRepo->makeModel();
 
-        if (Route::getCurrentRoute()->named('rule.edit')) {
-            $rule = $this->ruleRepo->findByUserId(Auth::id(), $id);
-            if (!$rule) {
-                abort('404');
-            }
+        if (Route::getCurrentRoute()?->named('rule.edit')) {
+            $rule = $this->ruleRepo->findByUserId(Auth::id(), $id ?? abort(Response::HTTP_NOT_FOUND));
+            abort_if(!$rule, Response::HTTP_NOT_FOUND);
         } else {
             $rule->fillDefault();
         }
@@ -77,21 +78,18 @@ class RuleController extends Controller
      * Store the rule.
      *
      * @param RuleStoreRequest $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @return RedirectResponse|Redirector
      */
-    public function store(RuleStoreRequest $request)
+    public function store(RuleStoreRequest $request): Redirector|RedirectResponse
     {
-        $appInfoKey = 'saved';
-        $targetId = Route::getCurrentRoute()->parameter('id', null);
+        $appInfoKey = self::ACTION_RESULT_KEY_SAVE;
+        $targetId = Route::getCurrentRoute()?->parameter('id');
 
-        if (Route::getCurrentRoute()->named('rule.edit')) {
+        if (Route::getCurrentRoute()?->named('rule.edit')) {
             $rule = $this->ruleRepo->findByUserId(Auth::id(), $targetId);
+            abort_if(!$rule,Response::HTTP_NOT_FOUND);
 
-            if (!$rule) {
-                abort('404');
-            }
-
-            $appInfoKey = 'edited';
+            $appInfoKey = self::ACTION_RESULT_KEY_EDIT;
         }
 
         $rule = $this->ruleRepo->store(
@@ -101,17 +99,16 @@ class RuleController extends Controller
             )
         );
 
-        return redirect(route('rule.edit', ['id' => $rule->id]))
-            ->with($appInfoKey, true);
+        return redirect(route('rule.edit', ['id' => $rule->id]))->with($appInfoKey, true);
     }
 
     /**
      * Delete specific rule.
      *
      * @param $ruleId
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @return RedirectResponse|Redirector
      */
-    public function delete($ruleId)
+    public function delete($ruleId): Redirector|RedirectResponse
     {
         $rule = $this->ruleRepo->findByUserId(Auth::id(), $ruleId);
         if (!$rule) {
@@ -122,7 +119,6 @@ class RuleController extends Controller
             abort('500');
         }
 
-        return redirect(route('rule.list'))
-            ->with('deleted', true);
+        return redirect(route('rule.list'))->with('deleted', true);
     }
 }

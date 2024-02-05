@@ -2,9 +2,13 @@
 
 namespace App\Models\Entities;
 
+use ArrayObject;
 use Carbon\Carbon;
 use Database\Factories\DeviceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Device extends BaseModel
@@ -15,7 +19,7 @@ class Device extends BaseModel
      * The cache key for users devices.
      * (Cache only 'device.id')
      */
-    const CACHE_KEY_USER_DEVICES = 'device:user:%s';
+    public const CACHE_KEY_USER_DEVICES = 'device:user:%s';
 
     /**
      * The attributes that are mass assignable.
@@ -52,9 +56,9 @@ class Device extends BaseModel
     }
 
     /**
-     * @var null|\ArrayObject
+     * @var null|ArrayObject
      */
-    protected $imageModel = null;
+    protected ?ArrayObject $imageModel = null;
 
     protected static function boot()
     {
@@ -76,7 +80,7 @@ class Device extends BaseModel
                     ->format('Y-m-d 23:59:59');
             }
 
-            if ($model->imageModel instanceof \ArrayObject) {
+            if ($model->imageModel instanceof ArrayObject) {
                 $model->forceFill(['image' => json_encode($model->imageModel->getArrayCopy()) ?: null]);
             }
         });
@@ -95,46 +99,46 @@ class Device extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo<User, Device>
      */
-    public function ownerUser()
+    public function ownerUser(): BelongsTo
     {
-        return $this->belongsTo('App\Models\Entities\User', 'owner_id', 'id');
+        return $this->belongsTo(User::class, 'owner_id', 'id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo<User, Device>
      */
-    public function assignedUser()
+    public function assignedUser(): BelongsTo
     {
-        return $this->belongsTo('App\Models\Entities\User', 'assigned_user_id', 'id');
+        return $this->belongsTo(User::class, 'assigned_user_id', 'id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return BelongsTo<Rule>
      */
-    public function rule()
+    public function rule(): BelongsTo
     {
-        return $this->hasOne('App\Models\Entities\Rule', 'id', 'rule_id');
+        return $this->belongsTo(Rule::class, 'rule_id', 'id');
     }
 
     /**
      * NOTE: If device has a alert,
      * don't create new record until active one has delete.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return HasOne<Alert>
      */
-    public function alert()
+    public function alert(): HasOne
     {
-        return $this->hasOne('App\Models\Entities\Alert', 'device_id', 'id');
+        return $this->hasOne(Alert::class, 'device_id', 'id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return BelongsToMany<Contact>
      */
-    public function contact()
+    public function contacts(): BelongsToMany
     {
-        return $this->belongsToMany('App\Models\Entities\Contact', 'device_contact');
+        return $this->belongsToMany(Contact::class, 'device_contact');
     }
 
     /**
@@ -273,7 +277,7 @@ class Device extends BaseModel
      *
      * @return bool
      */
-    public function enableReport()
+    public function enableReport(): bool
     {
         if (is_null($this->reported_at)) {
             return true;
@@ -290,24 +294,24 @@ class Device extends BaseModel
      *
      * @return bool
      */
-    public function enableReservedReport()
+    public function enableReservedReport(): bool
     {
         if (is_null($this->report_reserved_at)) {
             return false;
         }
 
-        return Carbon::now()->getTimestamp() > intval($this->report_reserved_at);
+        return Carbon::now()->getTimestamp() > (int)$this->report_reserved_at;
     }
 
     /**
      * Check the device is suspended.
      *
-     * NOTE: The judge is depends on suspend_start_at and suspend_end_at.
+     * NOTE: The judge depends on suspend_start_at and suspend_end_at.
      * (Ignore is_suspend)
      *
      * @return bool
      */
-    public function isSuspend()
+    public function isSuspend(): bool
     {
         if (!$this->suspend_start_at && !$this->suspend_end_at) {
             return false;
@@ -318,12 +322,13 @@ class Device extends BaseModel
 
         if ($startAt && $endAt) {
             return Carbon::today()->between($startAt, $endAt);
-        } elseif ($startAt) {
+        }
+        if ($startAt) {
             return Carbon::today()->greaterThanOrEqualTo($startAt);
-        } elseif ($endAt) {
+        }
+        if ($endAt) {
             return Carbon::today()->lessThan($endAt);
         }
-
         return false;
     }
 
@@ -348,9 +353,9 @@ class Device extends BaseModel
     /**
      * Set.
      *
-     * @param \ArrayObject $model
+     * @param ArrayObject $model
      */
-    public function setImageModel(\ArrayObject $model)
+    public function setImageModel(ArrayObject $model): void
     {
         $this->imageModel = $model;
     }
@@ -358,12 +363,12 @@ class Device extends BaseModel
     /**
      * Decode json and set to property 'imageModel' as a ArrayObject
      *
-     * @return \ArrayObject|null
+     * @return ArrayObject|null
      */
     public function loadImageModel()
     {
         $this->imageModel = (!is_null($this->image))
-            ? new \ArrayObject(json_decode($this->image, true), \ArrayObject::ARRAY_AS_PROPS)
+            ? new ArrayObject(json_decode($this->image, true), ArrayObject::ARRAY_AS_PROPS)
             : null;
 
         return $this->imageModel;

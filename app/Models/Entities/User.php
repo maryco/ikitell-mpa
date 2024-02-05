@@ -17,6 +17,9 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
+/**
+ * @property int $user
+ */
 class User extends Authenticatable implements MustVerifyEmail
 {
     use Notifiable, SoftDeletes, HasFactory;
@@ -223,18 +226,18 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Send the device resumed notification.
      *
-     * @param $device
-     * @param $isOwner
+     * @param Device $device
+     * @param bool $isOwner
      * @return bool
      */
-    public function sendDeviceResumedNotification($device, $isOwner = true)
+    public function sendDeviceResumedNotification(Device $device, bool $isOwner = true)
     {
         // Check the user's attribute on this device.
         $deviceUserId = ($isOwner) ? $device->owner_id : $device->assigned_user_id;
         if ($this->id !== $deviceUserId) {
             Log::warning(
-                'Not match user\'s attribute on this device. [%user] [%device][%deviceUser]',
-                ['%user' => $this->id, '%device' => $device->id, '$deviceUser' => $deviceUserId]
+                'Not match user\'s attribute on this device.',
+                ['userId' => $this->id, 'deviceId' => $device->id, 'deviceUserId' => $deviceUserId]
             );
             return false;
         }

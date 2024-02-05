@@ -2,6 +2,7 @@
 namespace App\Models\Repositories;
 
 use App\Models\Entities\Rule;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -25,9 +26,9 @@ class RuleRepository implements RuleRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\RuleRepositoryInterface::findByUserId
+     * @inheritDoc
      */
-    public function findByUserId($userId, $ruleId)
+    public function findByUserId(int $userId, int $ruleId): ?Rule
     {
         return Rule::userId($userId)
             ->id($ruleId)
@@ -35,13 +36,13 @@ class RuleRepository implements RuleRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\RuleRepositoryInterface::getByUserId
+     * @inheritDoc
      */
-    public function getByUserId($userId, $withDeviece = true)
+    public function getByUserId(int $userId, bool $withDevice = true): Collection
     {
         $query = Rule::userId($userId);
 
-        if ($withDeviece) {
+        if ($withDevice) {
             $query->with('device');
         }
 
@@ -52,23 +53,18 @@ class RuleRepository implements RuleRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\RuleRepositoryInterface::store
-     * @throws \Throwable
+     * @inheritDoc
      */
-    public function store($data)
+    public function store($data): Rule
     {
-        // TODO: Implement store() method.
         return DB::transaction(function () use ($data) {
-            if (Arr::get($data, 'id', null)) {
-                $rule = $this->findByUserId($data['user_id'], $data['id']);
+            if ($id = Arr::get($data, 'id')) {
+                $rule = $this->findByUserId($data['user_id'], $id);
             } else {
                 $rule = $this->makeModel();
             }
 
             $rule->mergeData($data);
-
-            Log::debug('Merged Model: []', ['' => $rule]);
-
             $rule->save();
 
             return $rule;
@@ -76,9 +72,9 @@ class RuleRepository implements RuleRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\RuleRepositoryInterface::delete
+     * @inheritDoc
      */
-    public function delete($ruleId, $userId)
+    public function delete($ruleId, $userId): bool
     {
         return DB::transaction(function () use ($ruleId, $userId) {
             $rule = Rule::id($ruleId)
@@ -87,19 +83,16 @@ class RuleRepository implements RuleRepositoryInterface
                 ->first();
 
             if (!$rule) {
-                Log::error(
-                    'Not found target rule [%id] [%user]',
-                    ['%id' => $ruleId, '%user' => $userId]
-                );
+                Log::error('Not found target rule', ['ruleId' => $ruleId, 'userId' => $userId]);
                 return false;
             }
 
             if (count($rule->device) !== 0) {
-                Log::error('This rule has using on some devices. [%ruleId]', ['%ruleId' => $ruleId]);
+                Log::error('This rule has using on some devices.', ['ruleId' => $ruleId]);
                 return false;
             }
 
-            return $rule->delete();
+            return (bool) $rule->delete();
         });
     }
 }

@@ -3,9 +3,15 @@
 namespace App\Models\Entities;
 
 
+use Database\Factories\NotificationLogFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 class NotificationLog extends BaseModel
 {
+    use HasFactory;
+
     /**
+     * TODO: Replace to Enum
      * The queue job status.
      */
     const JOB_STATUS_RESERVED = 1;
@@ -40,6 +46,14 @@ class NotificationLog extends BaseModel
         'id', 'alert_id', 'device_id', 'contact_id', 'notify_count',
         'email', 'name', 'job_status', 'created_at'
     ];
+
+    /**
+     * @return NotificationLogFactory
+     */
+    protected static function newFactory(): NotificationLogFactory
+    {
+        return NotificationLogFactory::new();
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo

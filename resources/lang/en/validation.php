@@ -169,6 +169,7 @@ return [
         'device_rule_id' => 'Notice Rule',
         'device_notification_targets' => 'Notification target email addresses',
         'device_last_reported_at' => 'Last Date of reset timer',
+        'device_total' => 'Total number of devices',
 
         'rule_name' => 'Name',
         'rule_description' => 'Description',
@@ -176,10 +177,12 @@ return [
         'rule_notify_times' => 'Max notification count',
         'rule_message_id' => 'Message',
         'rule_embedded_message' => 'Additional Text',
+        'rule_total' => 'Total number of rules',
 
         'contact_email' => 'E-Mail Address',
         'contact_name' => 'Name',
         'contact_description' => 'Description',
+        'contact_total' => 'Total number of contacts',
 
         'profile_id' => 'Id',
         'profile_name' => 'Name',

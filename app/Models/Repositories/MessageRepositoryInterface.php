@@ -2,22 +2,23 @@
 namespace App\Models\Repositories;
 
 use App\Models\Entities\ConcernMessage;
+use ArrayObject;
 
 interface MessageRepositoryInterface extends BaseRepositoryInterface
 {
     /**
      * Return the specified message template as a model.
      *
-     * @param $id
-     * @param $userId
+     * @param int $id
+     * @param int $userId
      * @return ConcernMessage|null
      */
-    public function findById($id, $userId);
+    public function findById(int $id, int $userId): ?ConcernMessage;
 
     /**
      * Get all template via the config.
      *
-     * @return array (ArrayObject)
+     * @return array<int, ArrayObject>
      */
-    public function getTemplate();
+    public function getTemplate(): array;
 }

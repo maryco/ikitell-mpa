@@ -18,13 +18,13 @@ use Illuminate\Support\Facades\View;
  */
 class ConcernMessage
 {
-    const VIEW_KEY_FORMAT = 'emails.alert.template.%s';
+    public const VIEW_KEY_FORMAT = 'emails.alert.template.%s';
 
     /**
      * The data of the message outlines.
      * NOTE: 'user_id' is 'devices.owner_id', but not used. :)
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $fillableBase = [
         'id', 'view_id', 'name', 'subject', 'user_id',
@@ -33,7 +33,7 @@ class ConcernMessage
     /**
      * The data for the message body contents.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $fillableContent = [
         'device_name', 'device_user_name', 'device_reported_at',
@@ -158,10 +158,10 @@ class ConcernMessage
      *
      * @return AlertNotification|null
      */
-    public function buildNotification()
+    public function buildNotification(): ?AlertNotification
     {
         if (!View::exists($this->viewKey)) {
-            Log::error('Not exists view [%key]', ['%key' => $this->viewKey]);
+            Log::error('Not exists view', ['key' => $this->viewKey]);
             return null;
         }
 

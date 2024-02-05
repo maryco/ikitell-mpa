@@ -1,8 +1,10 @@
 <?php
 namespace App\Models\Repositories;
 
+use App\Models\Entities\Alert;
 use App\Models\Entities\Device;
 use App\Notifications\AlertNotification;
+use Illuminate\Database\Eloquent\Collection;
 
 interface AlertRepositoryInterface extends BaseRepositoryInterface
 {
@@ -10,25 +12,25 @@ interface AlertRepositoryInterface extends BaseRepositoryInterface
      * Get notifiable records.
      *
      * @param int $limit
-     * @return mixed
+     * @return Collection<Alert>
      */
-    public function getActive($limit = 10);
+    public function getActive(int $limit = 10): Collection;
 
     /**
      * Return the new Notification instance.
      *
      * @param Device $device (NOTE: need with contact, rule, ownerUser and assignedUser)
-     * @return AlertNotification|null
+     * @return Alert|null
      */
-    public function buildAlert($device);
+    public function buildAlert(Device $device): ?Alert;
 
     /**
      * Update specific alert for prepare to a next notification.
      *
-     * @param $alertId
+     * @param int $alertId
      * @return bool
      */
-    public function updateForNext($alertId);
+    public function updateForNext(int $alertId): bool;
 
     /**
      * Search notification log of alert by specified conditions.

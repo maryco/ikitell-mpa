@@ -2,18 +2,20 @@
 
 namespace App\Models\Repositories;
 
+use App\Enums\Device\DeviceType;
+use App\Enums\User\PlanType;
 use App\Exceptions\IkitellRuntimeException;
 use App\Models\Entities\Device;
 use App\Models\Entities\Rule;
 use App\Models\Entities\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class UserRepository implements UserRepositoryInterface
 {
-    public function makeModel($bindData = null)
+    public function makeModel($bindData = null): User
     {
         return new User();
     }
@@ -25,19 +27,17 @@ class UserRepository implements UserRepositoryInterface
 
     /**
      * @see UserRepositoryInterface::createUserDataSet()
-     * @throws \Throwable
+     * @throws Throwable
      */
-    public function createUserDataSet($data)
+    public function createUserDataSet(array $data): mixed
     {
-        return DB::transaction(function () use ($data) {
-
+        return DB::transaction(static function () use ($data) {
             $user = User::create([
                 'name' => '',
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
                 'plan' => config('codes.subscription_types.basic'),
             ]);
-            $user->save();
 
             $rule = Rule::create([
                 'user_id' => $user->id,
@@ -80,7 +80,7 @@ class UserRepository implements UserRepositoryInterface
 
     /**
      * @see \App\Models\Repositories\UserRepositoryInterface::updateProfile
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function updateProfile($data, $userId)
     {
@@ -102,7 +102,7 @@ class UserRepository implements UserRepositoryInterface
 
     /**
      * @see UserRepositoryInterface::delete()
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function delete($userId)
     {

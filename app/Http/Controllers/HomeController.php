@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\NoticeLogSearchRequest;
-use App\Models\Entities\NotificationLog;
 use App\Models\Repositories\AlertRepositoryInterface;
 use App\Models\Repositories\DeviceRepositoryInterface;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
@@ -13,17 +15,17 @@ class HomeController extends Controller
     /**
      * The get notification logs limit.
      */
-    const LOG_LIST_LIMIT = 6;
+    private const LOG_LIST_LIMIT = 6;
 
     /**
      * @var DeviceRepositoryInterface
      */
-    protected $deviceRepo;
+    protected DeviceRepositoryInterface $deviceRepo;
 
     /**
      * @var AlertRepositoryInterface
      */
-    protected $alertRepo;
+    protected AlertRepositoryInterface $alertRepo;
 
     /**
      * Create a new controller instance.
@@ -43,14 +45,12 @@ class HomeController extends Controller
     /**
      * Show home.
      */
-    public function index()
+    public function index(): Factory|View|Application
     {
         $devices = $this->deviceRepo->getDashboard(Auth::user());
 
-        $searchRequest = new NoticeLogSearchRequest();
-
         $logs = $this->alertRepo->searchUsersAlertNoticeLog(
-            $searchRequest->getDefaultConditions(),
+            (new NoticeLogSearchRequest())->getDefaultConditions(),
             self::LOG_LIST_LIMIT
         );
 

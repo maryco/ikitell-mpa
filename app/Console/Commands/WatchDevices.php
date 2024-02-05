@@ -2,17 +2,19 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Traits\GetArgument;
 use App\Models\Repositories\DeviceRepositoryInterface;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class WatchDevices extends Command
 {
+    use GetArgument;
+
     /**
      * The limit of select devices per process.
      */
-    const SELECT_LIMIT = 10;
+    public const SELECT_LIMIT = 10;
 
     /**
      * The name and signature of the console command.
@@ -31,7 +33,7 @@ class WatchDevices extends Command
     /**
      * @var DeviceRepositoryInterface
      */
-    protected $deviceRepo;
+    protected DeviceRepositoryInterface $deviceRepo;
     /**
      * Create a new command instance.
      *
@@ -47,9 +49,9 @@ class WatchDevices extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         /**
          * NOTE:
@@ -61,40 +63,38 @@ class WatchDevices extends Command
          * - Issue alerts if found device of need alerting.
          */
 
-        $devices = $this->deviceRepo->getForInspection($this->argument('limit') ?? self::SELECT_LIMIT);
+        $devices = $this->deviceRepo->getForInspection($this->getArgumentInt('limit', self::SELECT_LIMIT));
 
         if (count($devices) === 0) {
             Log::info('No devices for need inspection.');
         }
 
-        $report = [];
+        $report = [
+            'begin_suspend' => [],
+            'issue_alert' => [],
+            'ok' => [],
+        ];
 
         foreach ($devices as $device) {
             if (!$device->rule) {
-                Log::warning('The device has no rule settings. [%device]', ['%device' => $device->id]);
-                continue;
-            }
-
-            if (!$device->ownerUser) {
-                Log::warning('The device has no owner user. [%device]', ['%device' => $device->id]);
+                Log::warning('The device has no rule.', ['deviceId' => $device->id]);
                 continue;
             }
 
             if ($device->isSuspend()) {
                 $res = $this->deviceRepo->beginSuspend($device->id);
-                $report['Begin suspend'][] = ['id' => $device->id, 'result' => $res];
-
+                $report['begin_suspend'][] = ['id' => $device->id, 'result' => $res];
                 continue;
             }
 
             if ($device->isTimeOver($device->rule->time_limits)) {
                 $res = $this->deviceRepo->issueAlert($device->id);
-                $report['Issue alert'][] = ['id' => $device->id, 'result' => $res];
+                $report['issue_alert'][] = ['id' => $device->id, 'result' => $res];
+                continue;
             }
+            $report['ok'][] = $device->id;
         }
 
-        Log::info('WatchDevice result report []', ['' => $report]);
-
-        return;
+        Log::info('WatchDevice inspection report.', ['details' => $report]);
     }
 }

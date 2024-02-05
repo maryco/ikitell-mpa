@@ -6,7 +6,10 @@ use App\Notifications\VerifiedContactsNotification;
 use App\Notifications\VerifyRequestContactsNotification;
 use Carbon\Carbon;
 use Database\Factories\ContactFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
@@ -21,7 +24,12 @@ class Contact extends BaseModel
      * @var array
      */
     protected $fillable = [
-        'user_id', 'name', 'email', 'description', 'email_verified_at', 'send_verify_at',
+        'user_id',
+        'name',
+        'email',
+        'description',
+        'email_verified_at',
+        'send_verify_at',
     ];
 
     /**
@@ -48,19 +56,19 @@ class Contact extends BaseModel
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo<User>
      */
-    public function user()
+    public function user(): BelongsTo
     {
-        return $this->belongsTo('App\Models\Entities\User', 'user_id', 'id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return BelongsToMany<Device>
      */
-    public function device()
+    public function devices(): BelongsToMany
     {
-        return $this->belongsToMany('App\Models\Entities\Device', 'device_contact');
+        return $this->belongsToMany(Device::class, 'device_contact');
     }
 
     /**
@@ -74,48 +82,44 @@ class Contact extends BaseModel
     /**
      * Scope a query by primary key
      *
-     * @param $query
-     * @param $id
-     * @return mixed
+     * @param Builder<Contact> $query
+     * @param int $id
      */
-    public function scopeId($query, $id)
+    public function scopeId(Builder $query, int $id): void
     {
-        return $query->where('id', $id);
+        $query->where('id', $id);
     }
 
     /**
      * Scope a query by user_id
      *
-     * @param $query
-     * @param $userId
-     * @return mixed
+     * @param Builder<Contact> $query
+     * @param int $userId
      */
-    public function scopeUserId($query, $userId)
+    public function scopeUserId(Builder $query, int $userId): void
     {
-        return $query->where('user_id', $userId);
+        $query->where('user_id', $userId);
     }
 
     /**
      * Scope a query verified
      *
-     * @param $query
-     * @return mixed
+     * @param Builder<Contact> $query
      */
-    public function scopeVerified($query)
+    public function scopeVerified(Builder $query): void
     {
-        return $query->whereNotNull('email_verified_at');
+        $query->whereNotNull('email_verified_at');
     }
 
     /**
      * Scope a query by email
      *
-     * @param $query
-     * @param $email
-     * @return mixed
+     * @param Builder<Contact> $query
+     * @param string $email
      */
-    public function scopeEmail($query, $email)
+    public function scopeEmail(Builder $query, string $email): void
     {
-        return $query->where('email', $email);
+        $query->where('email', $email);
     }
 
     /**
@@ -123,25 +127,21 @@ class Contact extends BaseModel
      *
      * @return bool
      */
-    public function enableEditEmail()
+    public function enableEditEmail(): bool
     {
-        if ($this->isVerified() || $this->send_verify_at !== null) {
-            return false;
-        }
-
-        return true;
+        return is_null($this->send_verify_at) && !$this->isVerified();
     }
 
     /**
-     * Return whether be able to send the verify request mail.
+     * Returns whether verification request emails can be sent.
      *
-     * The permit send conditions is below,
+     * Conditions for permission to send:
      * - Not verified.
-     * - Send interval must elapsed from last sent.
+     * - A certain interval has passed since the last attempt.
      *
      * @return bool
      */
-    public function enableSendVerify()
+    public function enableSendVerify(): bool
     {
         if ($this->isVerified()) {
             return false;
@@ -151,8 +151,7 @@ class Contact extends BaseModel
             return true;
         }
 
-        $sinceSendAt = Carbon::parse($this->last_send_verify_at)
-            ->diffInMinutes(Carbon::now());
+        $sinceSendAt = Carbon::parse($this->last_send_verify_at)->diffInMinutes(Carbon::now());
 
         Log::debug('Minutes of since latest send_verify_at = ', ['' => $sinceSendAt]);
 
@@ -165,14 +164,14 @@ class Contact extends BaseModel
      * @param bool $withTrash
      * @return string|null
      */
-    public function getLastVerifyAt($withTrash = true)
+    public function getLastVerifyAt(bool $withTrash = true): ?string
     {
         /**
          * NOTE: Latest send_verify_at includes deleted record.
          * Because prevent doing delete and create for the attempt several send.
          */
         if ($this->last_send_verify_at === null) {
-            $query = Contact::where('user_id', $this->user_id);
+            $query = self::where('user_id', $this->user_id);
 
             if ($withTrash) {
                 $query->withTrashed();
@@ -189,7 +188,7 @@ class Contact extends BaseModel
      *
      * @return bool
      */
-    public function isVerified()
+    public function isVerified(): bool
     {
         return $this->email_verified_at !== null;
     }
@@ -199,7 +198,7 @@ class Contact extends BaseModel
      *
      * @return bool
      */
-    public function isVerifyExpired()
+    public function isVerifyExpired(): bool
     {
         if ($this->isVerified() || $this->send_verify_at === null) {
             return false;
@@ -216,7 +215,7 @@ class Contact extends BaseModel
      *
      * @return string
      */
-    public function getVerifyStatus()
+    public function getVerifyStatus(): string
     {
         if ($this->isVerified()) {
             return __('label.verified');
@@ -234,7 +233,7 @@ class Contact extends BaseModel
      *
      * @param bool $doCopy  (Notify same mail also to the user)
      */
-    public function sendVerifyRequestNotification($doCopy = false)
+    public function sendVerifyRequestNotification(bool $doCopy = false): void
     {
         $verifyMail = new VerifyRequestContactsNotification($this);
 
@@ -248,7 +247,7 @@ class Contact extends BaseModel
     /**
      * Send the verified notification to the contacts.user.
      */
-    public function sendVerifiedNotification()
+    public function sendVerifiedNotification(): void
     {
         $verifiedMail = new VerifiedContactsNotification($this);
 
@@ -256,8 +255,8 @@ class Contact extends BaseModel
 
         if (!$user) {
             Log::warning(
-                'Not found notifiable user this contacts. [%userId] [%contactId]',
-                ['%userId' => $this->user_id, '%contactId' => $this->id]
+                'Not found notifiable user this contacts',
+                ['userId' => $this->user_id, 'contactId' => $this->id]
             );
             return;
         }

@@ -3,28 +3,47 @@
 namespace App\Models\Entities;
 
 use Database\Factories\RuleFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $time_limits
+ * @property int $notify_times
+ */
 class Rule extends BaseModel
 {
     use HasFactory;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
+     * @var array<int, string>
      */
     protected $fillable = [
-        'user_id', 'name', 'description',
-        'time_limits', 'notify_times', 'message_id', 'embedded_message'
+        'user_id',
+        'name',
+        'description',
+        'time_limits',
+        'notify_times',
+        'message_id',
+        'embedded_message'
     ];
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return BelongsTo
      */
-    public function device()
+    public function user(): BelongsTo
     {
-        return $this->hasMany('App\Models\Entities\Device', 'rule_id');
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return HasMany<Device>
+     */
+    public function device(): HasMany
+    {
+        return $this->hasMany(Device::class);
     }
 
     /**
@@ -36,38 +55,34 @@ class Rule extends BaseModel
     }
 
     /**
-     * Scope a query by user_id
-     *
-     * @param $query
-     * @param $userId
-     * @return mixed
+     * @param Builder $query
+     * @param int $userId
+     * @return void
      */
-    public function scopeUserId($query, $userId)
+    public function scopeUserId(Builder $query, int $userId): void
     {
-        return $query->where('user_id', $userId);
+        $query->where('user_id', $userId);
     }
 
     /**
-     * Scope a query by primary
-     *
-     * @param $query
-     * @param $id
-     * @return mixed
+     * @param Builder $query
+     * @param int $id
+     * @return void
      */
-    public function scopeId($query, $id)
+    public function scopeId(Builder $query, $id): void
     {
-        return $query->where('id', $id);
+        $query->where('id', $id);
     }
 
     /**
      * Fill default values.
      *
-     * @return $this
+     * @return static
      */
-    public function fillDefault()
+    public function fillDefault(): static
     {
-        $this->time_limits = \Config::get('specs.time_limit_min');
-        $this->notify_times = \Config::get('specs.send_notice_max.basic');
+        $this->time_limits = config('specs.time_limit_min');
+        $this->notify_times = config('specs.send_notice_max.basic');
 
         return $this;
     }
@@ -75,10 +90,10 @@ class Rule extends BaseModel
     /**
      * Get time_limits as a days
      *
-     * @return mixed
+     * @return int
      */
-    public function getTimeLimitsDays()
+    public function getTimeLimitsDays(): int
     {
-        return $this->time_limits > 0  ? intval($this->time_limits / 24) : 0;
+        return $this->time_limits > 0  ? (int)($this->time_limits / 24) : 0;
     }
 }

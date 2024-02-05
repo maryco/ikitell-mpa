@@ -3,7 +3,7 @@
 #
 
 APP_HOME=/home/vagrant/code/ikitell
-PHP_CMD=`which php`
+PHP_CMD=$(which php)
 
 lara_cmd=-1
 
@@ -20,14 +20,14 @@ if [ "${1}" = "notify" ] ; then
     lara_cmd="queue:work --stop-when-empty"
 fi
 
-if [ ${lara_cmd} -eq -1 ] ; then
-    echo "[ERROR] Invarid Command. (${1})"
+if [ "${lara_cmd}" -eq -1 ] ; then
+    echo "[ERROR] Invalid Command. (${1})"
     exit 1
 fi
 
 echo "[INFO] Execute artisan. (${lara_cmd})"
 
-cd $APP_HOME
-${PHP_CMD} artisan ${lara_cmd}
+cd $APP_HOME || exit
+${PHP_CMD} artisan "${lara_cmd}"
 
 exit 0

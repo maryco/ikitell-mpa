@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models\Repositories;
 
 use App\Models\Entities\Alert;
@@ -7,11 +8,14 @@ use App\Models\Entities\DeviceContact;
 use App\Models\Entities\DeviceDashboard;
 use App\Models\Entities\DeviceLog;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use RuntimeException;
+use Throwable;
 
 class DeviceRepository implements DeviceRepositoryInterface
 {
@@ -36,7 +40,7 @@ class DeviceRepository implements DeviceRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\DeviceRepositoryInterface::findByUser
+     * @inheritDoc
      */
     public function findByUser($user, $deviceId)
     {
@@ -46,9 +50,9 @@ class DeviceRepository implements DeviceRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\DeviceRepositoryInterface::getByUser
+     * @inheritDoc
      */
-    public function getByUser($user, $withRule = false, $withAlert = false)
+    public function getByUser($user, bool $withRule = false, bool $withAlert = false)
     {
         $query = Device::userColumn($user);
 
@@ -66,7 +70,7 @@ class DeviceRepository implements DeviceRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\DeviceRepositoryInterface::getDashboard
+     * @inheritDoc
      */
     public function getDashboard($user)
     {
@@ -87,17 +91,13 @@ class DeviceRepository implements DeviceRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\DeviceRepositoryInterface::store
-     *
-     * @param $data
-     * @return mixed
-     * @throws \Throwable
+     * @inheritDoc
      */
-    public function store($data)
+    public function store($data): Device
     {
         return DB::transaction(function () use ($data) {
             if (Arr::get($data, 'id', null)) {
-                $device = $this->findByUser(Auth::user(), $data['id']);
+                $device = $this->findByUser(auth_provided_user(), $data['id']);
             } else {
                 $device = $this->makeModel();
             }
@@ -105,8 +105,6 @@ class DeviceRepository implements DeviceRepositoryInterface
             $device->mergeData($data);
             $device->setImageModel(Device::makeImageModel($data, Device::getImageType('preset')));
             $device->clearSystemSuspend(false);
-
-            //Log::debug('Merged Model: []', ['' => $device]);
 
             $device->save();
 
@@ -129,23 +127,19 @@ class DeviceRepository implements DeviceRepositoryInterface
     }
 
     /**
-     * @see DeviceRepositoryInterface::report()
-     * @throws \Throwable
+     * @inheritDoc
      */
     public function report($user, $deviceId, $reportType)
     {
-        $device = DB::transaction(function () use ($user, $deviceId, $reportType) {
+        return DB::transaction(function () use ($user, $deviceId, $reportType) {
             $device = Device::userColumn($user)
                 ->id($deviceId)
                 ->lockForUpdate()
                 ->first();
 
             if (!$device) {
-                Log::error(
-                    'Device not found [%device_id] [%user_id]',
-                    ['%device_id' => $deviceId, '%user_id' => $user->id]
-                );
-                throw new \RuntimeException('Not found target device.');
+                Log::error('Device not found.', ['deviceId' => $deviceId, 'userId' => $user->id]);
+                throw new RuntimeException('Not found target device.');
             }
 
             $device->reported_at = Carbon::now()->getTimestamp();
@@ -163,13 +157,10 @@ class DeviceRepository implements DeviceRepositoryInterface
 
             return $device;
         });
-
-        return $device;
     }
 
     /**
-     * @see \App\Models\Repositories\DeviceRepositoryInterface::delete
-     * @throws \Throwable
+     * @inheritDoc
      */
     public function delete($deviceId, $ownerUserId)
     {
@@ -197,9 +188,9 @@ class DeviceRepository implements DeviceRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\DeviceRepositoryInterface::getForInspection
+     * @inheritDoc
      */
-    public function getForInspection($limit = 10)
+    public function getForInspection($limit = 10): Collection
     {
         // FIXME: sort order is all right ?
 
@@ -211,7 +202,7 @@ class DeviceRepository implements DeviceRepositoryInterface
                     ->whereNotNull('users.email_verified_at')
                     ->where('users.ban', 0);
             })
-            ->with(['rule', 'contact', 'ownerUser'])
+            ->with(['rule', 'contacts', 'ownerUser'])
             ->orderBy('reported_at')
             ->orderBy('id')
             ->limit($limit)
@@ -219,50 +210,48 @@ class DeviceRepository implements DeviceRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\DeviceRepositoryInterface::beginSuspend
-     * @throws \Throwable
+     * @inheritDoc
+     * @throws Throwable
      */
-    public function beginSuspend($deviceId)
+    public function beginSuspend($deviceId): bool
     {
-        return DB::transaction(function () use ($deviceId) {
+        return DB::transaction(static function () use ($deviceId) {
             $locked = Device::id($deviceId)
                 ->lockForUpdate()
                 ->first();
 
             if (!$locked) {
-                Log::warning('Not found target device. [%id]', ['%id' => $deviceId]);
-                throw new \RuntimeException('Not found target device.');
+                Log::warning('Not found target device.', ['deviceId' => $deviceId]);
+                throw new RuntimeException('Not found target device.');
             }
 
             if (!$locked->isSuspend()) {
-                Log::warning(
-                    'The device do not need to begin suspend. [%id]',
-                    ['%id' => $locked->id]
-                );
+                Log::warning('The device do not need to begin suspend.', ['deviceId' => $locked->id]);
                 $locked->clearSystemSuspend()->save();
                 return false;
             }
 
             /**
              * NOTE:
-             * Assume the suspend eternal,
-             * if the 'suspend_end_at' not specified.
+             * If the 'suspend_end_at' not sets, assumed suspend forever.
              */
 
             $locked->in_suspend = true;
-            $locked->report_reserved_at = ($locked->suspend_end_at)
+            $locked->report_reserved_at = $locked->suspend_end_at
                 ? Carbon::parse($locked->suspend_end_at)->getTimestamp()
-                : Carbon::now()->addYear(3)->getTimestamp();
+                : Carbon::now()
+                    ->addDays(config_int('specs.reserve_report_day_forever_suspend', 90))
+                    ->getTimestamp();
 
-            return boolval($locked->save());
+            return (bool)$locked->save();
         });
     }
 
     /**
-     * @see \App\Models\Repositories\DeviceRepositoryInterface::endSuspend
-     * @throws \Throwable
+     * @inheritDoc
+     * @throws Throwable
      */
-    public function endSuspend($deviceId)
+    public function endSuspend($deviceId): bool
     {
         return DB::transaction(function () use ($deviceId) {
             $locked = Device::id($deviceId)
@@ -271,12 +260,12 @@ class DeviceRepository implements DeviceRepositoryInterface
                 ->first();
 
             if (!$locked) {
-                Log::warning('Not found target device. [%id]', ['%id' => $deviceId]);
-                throw new \RuntimeException('Not found target device.');
+                Log::warning('Not found target device', ['deviceId' => $deviceId]);
+                throw new RuntimeException('Not found target device.');
             }
 
             if (!$locked->enableReservedReport()) {
-                Log::warning('The device cannot report. [%device]', ['%device' => $deviceId]);
+                Log::warning('The device cannot report', ['deviceId' => $deviceId]);
                 return false;
             }
 
@@ -291,7 +280,7 @@ class DeviceRepository implements DeviceRepositoryInterface
             $locked->report_reserved_at = null;
             $locked->suspend_start_at = null;
             $locked->suspend_end_at = null;
-            
+
             $locked->clearSystemSuspend()->save();
 
             return true;
@@ -299,26 +288,26 @@ class DeviceRepository implements DeviceRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\DeviceRepositoryInterface::issueAlert
-     * @throws \Throwable
+     * @inheritDoc
+     * @throws Throwable
      */
-    public function issueAlert($deviceId)
+    public function issueAlert($deviceId): bool
     {
         return DB::transaction(function () use ($deviceId) {
             $locked = Device::id($deviceId)
                 ->lockForUpdate()
-                ->with(['rule', 'contact', 'ownerUser', 'assignedUser'])
+                ->with(['rule', 'contacts', 'ownerUser', 'assignedUser'])
                 ->first();
 
             if (!$locked || !$locked->rule) {
-                Log::error('Not found target device. [%device]', ['%id' => $deviceId]);
+                Log::error('Not found target device or rule.', ['deviceId' => $deviceId]);
                 return false;
             }
 
             if (!$locked->isTimeOver($locked->rule->time_limits)) {
                 Log::error(
-                    'The target device is not time over. [%device] [%rule]',
-                    ['%id' => $locked->id, '%rule' => $locked->rule->id]
+                    'The target device is not time over.',
+                    ['deviceId' => $locked->id, 'ruleId' => $locked->rule->id]
                 );
                 return false;
             }
@@ -327,10 +316,7 @@ class DeviceRepository implements DeviceRepositoryInterface
             $alert = $alertRepo->buildAlert($locked);
 
             if (!$alert) {
-                Log::error(
-                    'Failed to build alert. [%device] [%rule]',
-                    ['%id' => $locked->id, '%rule' => $locked->rule->id]
-                );
+                Log::error('Failed to build alert.', ['deviceId' => $locked->id, 'ruleId' => $locked->rule->id]);
                 return false;
             }
 
@@ -338,14 +324,14 @@ class DeviceRepository implements DeviceRepositoryInterface
 
             $locked->in_alert = true;
 
-            return boolval($locked->save());
+            return (bool)$locked->save();
         });
     }
 
     /**
-     * @see \App\Models\Repositories\DeviceRepositoryInterface::getForResume
+     * @inheritDoc
      */
-    public function getForResume($limit = 10)
+    public function getForResume(int $limit = 10): Collection
     {
         return Device::where('in_suspend', true)
             ->where('report_reserved_at', '<', Carbon::now()->getTimestamp())
@@ -377,7 +363,7 @@ class DeviceRepository implements DeviceRepositoryInterface
     /**
      * NOTE: Currently, 'Cache' use 'Session'.
      *
-     * @see \App\Models\Repositories\DeviceRepositoryInterface::getCachedUsersDeviceId
+     * @inheritDoc
      */
     public function getCachedUsersDeviceId($user)
     {
@@ -394,7 +380,7 @@ class DeviceRepository implements DeviceRepositoryInterface
     /**
      * NOTE: Currently, 'Cache' use 'Session'.
      *
-     * @see \App\Models\Repositories\DeviceRepositoryInterface::cacheUsersDeviceId
+     * @inheritDoc
      */
     public function cacheUsersDeviceId($userId, $devices)
     {
@@ -411,7 +397,7 @@ class DeviceRepository implements DeviceRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\DeviceRepositoryInterface::makeMock
+     * @inheritDoc
      */
     public function makeMock($data = [])
     {

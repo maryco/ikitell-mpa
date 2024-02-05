@@ -7,19 +7,21 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Validator;
 
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
+    public const ACTION_RESULT_KEY_SAVE = 'saved';
+    public const ACTION_RESULT_KEY_EDIT = 'edited';
+
     /**
-     * Return the only the valid parameters.
+     * Return only valid parameters.
      *
      * @param Request $request
+     * @param Validator $validator
      * @param array $keys
-     * @param $validator
      * @return array
      */
     protected function onlyValidParameters(Request $request, Validator $validator, $keys = [])

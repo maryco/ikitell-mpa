@@ -14,7 +14,7 @@ class RuleStoreRequest extends BaseStoreRequest
     /**
      * The structures for the front interface.
      */
-    const FRONT_MODELS = [
+    public const FRONT_MODELS = [
         'message' => [
             'value' => '',
             'text' => '',
@@ -22,32 +22,28 @@ class RuleStoreRequest extends BaseStoreRequest
         ],
     ];
 
-    protected $ignoreInputRegex = '/^rule_/';
+    protected string $ignoreInputRegex = '/^rule_/';
 
     /**
      * The mail template models.
      * @see \App\Models\Entities\ConcernMessage
      *
-     * @var
+     * @var array<int, mixed>
      */
-    protected $mailMessages = [];
+    protected array $mailMessages = [];
 
     /**
-     * Determine if the user is authorized to make this request.
-     *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
+     * @return array<string, mixed>
      */
-    public function rules()
+    public function rules(): array
     {
         // FIXME:
         if (count($this->mailMessages) === 0) {
@@ -66,12 +62,12 @@ class RuleStoreRequest extends BaseStoreRequest
 
         $createRules = [];
 
-        if (Route::getCurrentRoute()->getName() === 'rule.create') {
+        if (Route::getCurrentRoute()?->getName() === 'rule.create') {
             $createRules = [
-              'rule_total' => ['required', new MaxStored(
-                  new RuleRepository,
-                  Auth::user()->getMaxMakingRule()
-              )],
+              'rule_total' => [
+                  'required',
+                  new MaxStored(new RuleRepository, Auth::user()?->getMaxMakingRule())
+              ],
             ];
         }
 
@@ -82,9 +78,9 @@ class RuleStoreRequest extends BaseStoreRequest
      * Get the validation rules, for the mail preview.
      *
      * @param $messagesIds
-     * @return array
+     * @return array<string, mixed>
      */
-    public static function rulesPreviewMail($messagesIds)
+    public static function rulesPreviewMail($messagesIds): array
     {
         return [
             'rule_time_limits' => ['nullable', Rule::in(self::getTimeLimitsValues())],
@@ -97,10 +93,10 @@ class RuleStoreRequest extends BaseStoreRequest
     /**
      * Setter for the 'mailMessages'
      *
-     * @param array $mailMessages
+     * @param mixed $mailMessages
      * @return $this
      */
-    public function setMailMessages($mailMessages)
+    public function setMailMessages(mixed $mailMessages): static
     {
         if (is_array($mailMessages)) {
             $this->mailMessages = $mailMessages;
@@ -112,13 +108,13 @@ class RuleStoreRequest extends BaseStoreRequest
     /**
      * Return the range for the time limits values.
      *
-     * @return array
+     * @return array<int>
      */
-    public static function getTimeLimitsValues()
+    public static function getTimeLimitsValues(): array
     {
         return range(
-            config('specs.time_limit_min'),
-            config('specs.time_limit_max'),
+            config_int('specs.time_limit_min', 24),
+            config_int('specs.time_limit_max', 48),
             24
         );
     }
@@ -126,13 +122,13 @@ class RuleStoreRequest extends BaseStoreRequest
     /**
      * Return the range for the notify times values.
      *
-     * @return array
+     * @return array<int>
      */
-    public static function getNotifyTimesValues()
+    public static function getNotifyTimesValues(): array
     {
         return range(
             0,
-            config('specs.send_notice_max.'.Auth::user()->getPlanName()),
+            config_int('specs.send_notice_max.'.Auth::user()?->getPlanName(), 1),
             1
         );
     }
@@ -141,10 +137,9 @@ class RuleStoreRequest extends BaseStoreRequest
      * Convert model to array
      * for the Vue component parameter.
      *
-     * @param $messages
-     * @return array
+     * @return array<int, mixed>
      */
-    public function messagesToArray()
+    public function messagesToArray(): array
     {
         $data = [];
 
@@ -158,5 +153,4 @@ class RuleStoreRequest extends BaseStoreRequest
 
         return $data;
     }
-
 }

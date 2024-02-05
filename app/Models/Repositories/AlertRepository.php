@@ -3,15 +3,14 @@ namespace App\Models\Repositories;
 
 use App\Models\Entities\Alert;
 use App\Models\Entities\Device;
-use App\Models\Entities\DeviceDashboard;
 use App\Models\Entities\NotificationLog;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class AlertRepository implements AlertRepositoryInterface
 {
@@ -37,11 +36,11 @@ class AlertRepository implements AlertRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\AlertRepositoryInterface::getActive
+     * @inheritDoc
      */
-    public function getActive($limit = 10)
+    public function getActive(int $limit = 10): Collection
     {
-        return Alert::where('max_notify_count', '>=', 'notify_count')
+        return Alert::where('max_notify_count', '>=', DB::raw('notify_count'))
             ->where('next_notify_at', '<', Carbon::now()->getTimestamp())
             ->orderBy('next_notify_at')
             ->orderBy('id')
@@ -51,19 +50,19 @@ class AlertRepository implements AlertRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\AlertRepositoryInterface::buildAlert
+     * @inheritDoc
      */
-    public function buildAlert($device)
+    public function buildAlert(Device $device): ?Alert
     {
         if (!$device->rule) {
-            Log::error('The target device has no rule. [%device]', ['%id' => $device->id]);
+            Log::error('The target device has no rule.', ['deviceId' => $device->id]);
             return null;
         }
 
-        $alert = Alert::factory()->make([
+        $alert = (new Alert())->fill([
             'device_id' => $device->id,
             'notify_count' => 0,
-            'max_notify_count' => $device->rule->notify_times,
+            'max_notify_count' => $device->rule?->notify_times,
             'next_notify_at' => now()->getTimestamp(),
         ]);
 
@@ -87,13 +86,9 @@ class AlertRepository implements AlertRepositoryInterface
             );
         }
 
-        if ($device->contact && count($device->contact) > 0) {
-            foreach ($device->contact as $contact) {
-                $alert->addSendTarget(
-                    $contact->email,
-                    $contact->name,
-                    Alert::TARGET_TYPE_CONTACTS
-                );
+        if ($device->contacts && count($device->contacts) > 0) {
+            foreach ($device->contacts as $contact) {
+                $alert->addSendTarget($contact->email, $contact->name, Alert::TARGET_TYPE_CONTACTS);
             }
         }
 
@@ -102,10 +97,7 @@ class AlertRepository implements AlertRepositoryInterface
          */
 
         if (!$device->rule->message_id) {
-            Log::error(
-                'The device has no message id [%device] [%rule]',
-                ['%device' => $device->id, '%rule' => $device->rule->id]
-            );
+            Log::error('The device has no message id', ['deviceId' => $device->id, 'ruleId' => $device->rule->id]);
             return null;
         }
 
@@ -113,10 +105,7 @@ class AlertRepository implements AlertRepositoryInterface
         $msg = $msgRepo->findById($device->rule->message_id, $device->owner_id);
 
         if (!$msg) {
-            Log::error(
-                'Not found message. [%message]',
-                ['%message' => $device->rule->message_id]
-            );
+            Log::error('Not found message.', ['messageId' => $device->rule->message_id]);
             return null;
         }
 
@@ -130,13 +119,12 @@ class AlertRepository implements AlertRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\AlertRepositoryInterface::updateForNext
-     * @throws \Throwable
+     * @inheritDoc
+     * @throws Throwable
      */
-    public function updateForNext($alertId)
+    public function updateForNext(int $alertId): bool
     {
-        DB::transaction(function () use ($alertId) {
-
+        return DB::transaction(static function () use ($alertId) {
             /**
              * Update to prepare to the next notification process.
              */
@@ -145,15 +133,15 @@ class AlertRepository implements AlertRepositoryInterface
                 ->first();
 
             if (!$locked) {
-                Log::error('Not found target alert. [%alert]', ['%id' => $alertId]);
+                Log::error('Not found target alert.', ['alertId' => $alertId]);
                 return false;
             }
 
-            if ($locked->notify_count == $locked->max_notify_count) {
+            if ($locked->notify_count === $locked->max_notify_count) {
                 $locked->next_notify_at = null;
             } else {
                 $locked->next_notify_at = Carbon::now()
-                    ->addMinute(config('specs.send_alert_interval'))
+                    ->addMinutes(config_int('specs.send_alert_interval', 180))
                     ->getTimestamp();
             }
 
@@ -168,7 +156,7 @@ class AlertRepository implements AlertRepositoryInterface
              * It's ok to implements here.
              */
 
-            return boolval($locked->save());
+            return (bool)$locked->save();
         });
     }
 

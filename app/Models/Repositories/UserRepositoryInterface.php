@@ -7,10 +7,10 @@ interface UserRepositoryInterface extends BaseRepositoryInterface
     /**
      * Create User and default Device and Rule
      *
-     * @param $data
+     * @param $data array<string, string>
      * @return mixed
      */
-    public function createUserDataSet($data);
+    public function createUserDataSet(array $data): mixed;
 
     /**
      * Return the specified user.

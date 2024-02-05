@@ -1,19 +1,16 @@
-<?php /** @noinspection PhpCSFixerValidationInspection */
+<?php
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
 */
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ViewErrorBag;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -45,9 +42,7 @@ Route::get('/contact', 'ContactController@showForm')->name('contact');
  * Device routes.
  * NOTE: The 'report' has 'throttle' middleware.
  */
-Route::group(['prefix' => 'device', 'as' => 'device.',
-    'middleware' => ['auth']], function () {
-
+Route::group(['prefix' => 'device', 'as' => 'device.', 'middleware' => ['auth']], function () {
     Route::get('/list', 'DeviceController@getList')->name('list');
     Route::get('/create', 'DeviceController@showForm')->name('create');
     Route::post('/create', 'DeviceController@store')->name('create');
@@ -60,23 +55,19 @@ Route::group(['prefix' => 'device', 'as' => 'device.',
 /*
  * Notice routes.
  */
-Route::group(['prefix' => 'notice', 'as' => 'notice.',
-    'middleware' => ['auth']], function () {
-
+Route::group(['prefix' => 'notice', 'as' => 'notice.', 'middleware' => ['auth']], function () {
     /**
      * Manage Address
      */
-    Route::group(['prefix' => 'address', 'as' => 'address.',
-        'middleware' => ['verified']], function () {
-
-        Route::get('list', 'NoticeAddressController@getList')->name('list');
-        Route::get('create', 'NoticeAddressController@showForm')->name('create');
-        Route::post('create', 'NoticeAddressController@store')->name('create');
-        Route::get('{id}/edit', 'NoticeAddressController@showForm')->name('edit');
-        Route::post('{id}/edit', 'NoticeAddressController@store')->name('edit');
-        Route::post('{id}/delete', 'NoticeAddressController@delete')->name('delete');
-        Route::post('{id}/verify/send', 'NoticeAddressController@sendVerify')->name('verify.send');
-        Route::post('{id}/verify/preview', 'NoticeAddressController@previewVerify')->name('verify.preview');
+    Route::group(['prefix' => 'address', 'as' => 'address.', 'middleware' => ['verified']], function () {
+        Route::get('list', 'NotificationDestinationController@getList')->name('list');
+        Route::get('create', 'NotificationDestinationController@showForm')->name('create');
+        Route::post('create', 'NotificationDestinationController@store')->name('create');
+        Route::get('{id}/edit', 'NotificationDestinationController@showForm')->name('edit');
+        Route::post('{id}/edit', 'NotificationDestinationController@store')->name('edit');
+        Route::post('{id}/delete', 'NotificationDestinationController@delete')->name('delete');
+        Route::post('{id}/verify/send', 'NotificationDestinationController@sendVerification')->name('verify.send');
+        Route::post('{id}/verify/preview', 'NotificationDestinationController@previewVerify')->name('verify.preview');
     });
 
     /**
@@ -99,15 +90,13 @@ Route::group(['prefix' => 'notice', 'as' => 'notice.',
  * Verify contacts email address.
  * NOTE: Middleware is set in the Controller.
  */
-Route::get('notice/address/{id}/verify', 'NoticeAddressController@verify')
+Route::get('notice/address/{id}/verify', 'NotificationDestinationController@verify')
     ->name('notice.address.verify');
 
 /*
  * Alerting Rule routes.
  */
-Route::group(['prefix' => 'rule', 'as' => 'rule.',
-    'middleware' => ['auth']], function () {
-
+Route::group(['prefix' => 'rule', 'as' => 'rule.', 'middleware' => ['auth']], function () {
     Route::get('/list', 'RuleController@getList')->name('list');
     Route::get('/create', 'RuleController@showForm')->name('create');
     Route::post('/create', 'RuleController@store')->name('create');
@@ -119,9 +108,7 @@ Route::group(['prefix' => 'rule', 'as' => 'rule.',
 /*
  * User Profile routes.
  */
-Route::group(['prefix' => 'profile', 'as' => 'profile.',
-    'middleware' => ['auth']], function () {
-
+Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth']], function () {
     Route::get('/edit', 'ProfileController@showForm')->name('edit');
     Route::post('/edit', 'ProfileController@update')->name('edit');
 });
@@ -129,9 +116,7 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.',
 /*
  * Account routes.
  */
-Route::group(['prefix' => 'account', 'as' => 'account.',
-    'middleware' => ['auth']], function () {
-
+Route::group(['prefix' => 'account', 'as' => 'account.', 'middleware' => ['auth']], function () {
     //Route::get('/plan/edit', 'AccountController@showPlanForm')->name('plan');
     //Route::post('/plan/edit', 'AccountController@storePlan')->name('plan');
     Route::post('/password/email', 'AccountController@sendResetLinkEmail')->name('password.email');
@@ -143,7 +128,6 @@ Route::group(['prefix' => 'account', 'as' => 'account.',
  * NOTE: These routes register only local env.
  */
 Route::group(['prefix' => 'lab', 'as' => 'lab.'], function () {
-
     if ('local' !== \Illuminate\Support\Facades\App::environment()) {
         //Log::error("This route only for the local env!");
         return;
@@ -152,7 +136,9 @@ Route::group(['prefix' => 'lab', 'as' => 'lab.'], function () {
     /*
      * Develop for frontend etc
      */
-    Route::get('/', function () {return view('lab');})->name('home');
+    Route::get('/', function () {
+        return view('lab');
+    })->name('home');
 
     Route::get('form', function () {
         $deviceForm = new \App\Http\Requests\DeviceStoreRequest();
@@ -164,7 +150,7 @@ Route::group(['prefix' => 'lab', 'as' => 'lab.'], function () {
         $e = new \Symfony\Component\HttpKernel\Exception\HttpException(404, 'メッセージ');
 
         return view('panels.error', [
-            'errors' => new \Illuminate\Support\ViewErrorBag,
+            'errors' => new ViewErrorBag(),
             'exception' => $e,
         ]);
     })->name('error');

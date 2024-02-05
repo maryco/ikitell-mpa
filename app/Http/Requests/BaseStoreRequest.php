@@ -8,39 +8,27 @@ class BaseStoreRequest extends FormRequest
 {
     /**
      * The remove regex for the form input element name.
-     * @var
+     * @var string
      */
-    protected $ignoreInputRegex;
+    protected string $ignoreInputRegex;
 
     /**
      * Determine if the user is authorized to make this request.
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return false;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
-    public function rules()
-    {
-        return [
-            //
-        ];
-    }
-
-    /**
      * Return only form input values in request
-     * NOTE: Convert key if has a replace pattern.
+     * NOTE: Convert key when has pattern for replace.
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    public function onlyForStore()
+    public function onlyForStore(): array
     {
         $input = [];
 

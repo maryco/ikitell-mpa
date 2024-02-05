@@ -2,14 +2,18 @@
 
 namespace App\Models\Entities;
 
+use App\Enums\Device\DeviceImageType;
+use ArrayObject;
 use Illuminate\Support\Arr;
 
 trait DeviceImage
 {
     /**
+     * TODO: remove
      * The image types
+     * @var array<string, int>
      */
-    protected static $imageTypes = [
+    protected static array $imageTypes = [
         'preset' => 1,
         'original' => 2,
     ];
@@ -52,25 +56,25 @@ trait DeviceImage
      * Return specific preset image dataset.
      * NOTE: Return all items as array, if the parameter is null.
      *
-     * @param null $value
+     * @param ?string $value
      * @return array|mixed|null
      */
-    public static function getPresetImage($value = null)
+    public static function getPresetImage(string $value = null): mixed
     {
         $presets = [];
         $picked = null;
 
-        // Append unique 'key' for the front using.
-        foreach (static::$presetImages as $idx => $item) {
+        // Append unique 'key' for using in front.
+        foreach (static::$presetImages as $item) {
             $presets[] = array_merge(
                 $item,
                 [
                     'key' => sprintf(static::$presetImageKey, $item['value']),
-                    'type' => static::$imageTypes['preset']
+                    'type' => DeviceImageType::PRESET->value,
                 ]
             );
 
-            if (strval($value) === strval($item['value'])) {
+            if ((int) $value === (int) $item['value']) {
                 $picked = Arr::last($presets);
             }
         }
@@ -84,13 +88,13 @@ trait DeviceImage
      *
      * @param  $data
      * @param $type
-     * @return \ArrayObject
+     * @return ArrayObject
      */
-    public static function makeImageModel($data, $type = null)
+    public static function makeImageModel($data, $type = null): ArrayObject
     {
-        $model = ['type' => $type ?? static::$imageTypes['preset']];
+        $model = ['type' => $type ?? DeviceImageType::PRESET->value];
 
-        if (intval($model['type']) === intval(static::$imageTypes['preset'])) {
+        if ((int) $model['type'] === DeviceImageType::PRESET->value) {
             $model['value'] = Arr::get($data, static::$inputNames['preset'], static::$presetImageDefault);
         }
 
@@ -98,19 +102,19 @@ trait DeviceImage
          * TODO: Implements "$type is self::IMAGE_TYPE_ORIGINAL"
          */
 
-        return new \ArrayObject($model, \ArrayObject::ARRAY_AS_PROPS);
+        return new ArrayObject($model, ArrayObject::ARRAY_AS_PROPS);
     }
 
     /**
      * Return all image types or specific one.
      *
-     * @param null $typeName
-     * @return array|mixed
+     * @param ?string $typeName
+     * @return array|int|null
      */
-    public static function getImageType($typeName = null)
+    public static function getImageType(string $typeName = null): int|array|null
     {
-        return ($typeName === null)
-            ? static::$imageTypes
-            : Arr::get(static::$imageTypes, $typeName, null);
+        return (is_null($typeName))
+            ? DeviceImageType::toArray()
+            : DeviceImageType::fromName($typeName)?->value;
     }
 }

@@ -5,50 +5,51 @@ namespace App\Notifications;
 use App\Models\Entities\ConcernMessage;
 use App\Models\Entities\NotificationLog;
 use App\Models\Entities\User;
+use ArrayObject;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Markdown;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class AlertNotification extends Notification implements ShouldQueue, ShouldLogging
 {
     use Queueable;
 
     /**
-     * The queue name for a job.queue
+     * The queue name for a 'job.queue'
      */
-    const QUEUE_NAME = 'default';//'alert';
+    public const QUEUE_NAME = 'default'; //'alert';
 
     /**
      * The key of the view.
      *
      * @var string
      */
-    private $view;
+    private string $view;
 
     /**
      * The subject text.
      *
      * @var string
      */
-    private $subject;
+    private string $subject;
 
     /**
      * The parameters for the mail body.
      * @see ConcernMessage
      *
-     * @var
+     * @var array<string, mixed>
      */
-    private $content;
+    private array $content;
 
     /**
      * The Alert of cause of this notification.
      *
-     * @var
+     * @var ArrayObject<mixed>|null
      */
-    private $alert;
+    private ?ArrayObject $alert;
 
     /**
      * Create a new notification instance.
@@ -67,10 +68,10 @@ class AlertNotification extends Notification implements ShouldQueue, ShouldLoggi
     /**
      * Get the notification's delivery channels.
      *
-     * @param  mixed  $notifiable
-     * @return array
+     * @param $notifiable
+     * @return array|string
      */
-    public function via($notifiable)
+    public function via($notifiable): array|string
     {
         return ['mail'];
     }
@@ -78,10 +79,10 @@ class AlertNotification extends Notification implements ShouldQueue, ShouldLoggi
     /**
      * Get the mail representation of the notification.
      *
-     * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
+     * @param  mixed $notifiable
+     * @return MailMessage
      */
-    public function toMail($notifiable)
+    public function toMail(mixed $notifiable): MailMessage
     {
         return (new MailMessage())
             ->subject($this->subject)
@@ -91,10 +92,10 @@ class AlertNotification extends Notification implements ShouldQueue, ShouldLoggi
     /**
      * Get the array representation of the notification.
      *
-     * @param  mixed  $notifiable
-     * @return array
+     * @param  mixed $notifiable
+     * @return array<string, mixed>
      */
-    public function toArray($notifiable)
+    public function toArray(mixed $notifiable): array
     {
         return [
             'content' => $this->content,
@@ -108,9 +109,9 @@ class AlertNotification extends Notification implements ShouldQueue, ShouldLoggi
     /**
      * Set the alert identifier.
      *
-     * @param $id
+     * @param ArrayObject $alert
      */
-    public function setAlert($alert)
+    public function setAlert(ArrayObject $alert): void
     {
         $this->alert = $alert;
     }
@@ -118,9 +119,9 @@ class AlertNotification extends Notification implements ShouldQueue, ShouldLoggi
     /**
      * Get the alert identifier.
      *
-     * @return int|null
+     * @return ArrayObject|null
      */
-    public function getAlert()
+    public function getAlert(): ?ArrayObject
     {
         return $this->alert;
     }
@@ -129,10 +130,10 @@ class AlertNotification extends Notification implements ShouldQueue, ShouldLoggi
      * Render the mail as HTML.
      *
      * @param $notifiable
-     * @param $disableLink (Replace '#' all included href attribute.)
+     * @param ?bool $disableLink (Replace '#' all included href attribute.)
      * @return mixed
      */
-    public function renderAsMarkdown($notifiable, $disableLink = true)
+    public function renderAsMarkdown($notifiable, bool $disableLink = true): mixed
     {
         $view = app(Markdown::class)->render(
             $this->toMail($notifiable)->markdown,
@@ -148,9 +149,9 @@ class AlertNotification extends Notification implements ShouldQueue, ShouldLoggi
      * @param $notifiable
      * @return string
      *
-     * @throws \Throwable
+     * @throws Throwable
      */
-    public function renderAsText($notifiable)
+    public function renderAsText($notifiable): string
     {
         return view(
             $this->view,
@@ -162,13 +163,9 @@ class AlertNotification extends Notification implements ShouldQueue, ShouldLoggi
      * Logging the alert detail and notification detail.
      * NOTE: Logging only for the notice for the Contacts.
      *
-     * @param $notifiable (User|Contact)
-     * @param int $jobStatus
-     *
-     * @see \App\Notifications\ShouldLogging::putLog
-     * @throws \Throwable
+     * @inheritDoc
      */
-    public function putLog($notifiable, $jobStatus)
+    public function putLog(mixed $notifiable, int $jobStatus): void
     {
         if ($notifiable instanceof User) {
             return;

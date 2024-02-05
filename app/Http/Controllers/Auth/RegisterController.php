@@ -5,24 +5,17 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Entities\User;
 use App\Models\Repositories\UserRepositoryInterface;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
 
 class RegisterController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Register Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles the registration of new users as well as their
-    | validation and creation. By default this controller uses a trait to
-    | provide this functionality without requiring any additional code.
-    |
-    */
-
     use RegistersUsers;
 
     /**
@@ -30,12 +23,12 @@ class RegisterController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected string $redirectTo = '/home';
 
     /**
      * @var UserRepositoryInterface
      */
-    protected $userRepo;
+    protected UserRepositoryInterface $userRepo;
 
     /**
      * Create a new controller instance.
@@ -55,8 +48,9 @@ class RegisterController extends Controller
      * @param  array  $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
-    protected function validator(array $data)
+    protected function validator(array $data): \Illuminate\Contracts\Validation\Validator
     {
+        // TODO: Update password policy.
         return Validator::make($data, [
             // NOTE: Not use users.name but exist a column.
             //'name' => ['required', 'string', 'max:255'],
@@ -69,14 +63,14 @@ class RegisterController extends Controller
      * Create a new user instance after a valid registration.
      *
      * @param  array  $data
-     * @return \App\Models\Entities\User
+     * @return User
      */
-    protected function create(array $data)
+    protected function create(array $data): User
     {
         $user = $this->userRepo->createUserDataSet($data);
 
         if (!$user) {
-            Log::warning('Failed to register new account. [%]', ['' => $data]);
+            Log::warning('Failed to register new account.', ['request' => $data]);
             abort(500);
         }
 
@@ -84,9 +78,12 @@ class RegisterController extends Controller
     }
 
     /**
-     * @see \Illuminate\Foundation\Auth\RegistersUsers::registered
+     * @param Request $request
+     * @param $user
+     * @return RedirectResponse|Application|Redirector|JsonResponse
+     * @see RegistersUsers::registered
      */
-    protected function registered(Request $request, $user)
+    protected function registered(Request $request, $user): RedirectResponse|Application|Redirector|JsonResponse
     {
         if ($request->ajax()) {
             return response_json_redirection(
@@ -95,7 +92,6 @@ class RegisterController extends Controller
             );
         }
 
-        return redirect($this->redirectTo)
-            ->with('registered', true);
+        return redirect($this->redirectTo)->with('registered', true);
     }
 }

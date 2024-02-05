@@ -1,16 +1,18 @@
 <?php
 namespace App\Models\Repositories;
 
+use App\Models\Entities\Contact;
+
 interface ContactRepositoryInterface extends BaseRepositoryInterface
 {
     /**
      * Return the specified contacts.
      *
-     * @param $userId
-     * @param $contactId
-     * @return mixed
+     * @param int $userId
+     * @param int $contactId
+     * @return ?Contact
      */
-    public function findByUserId($userId, $contactId);
+    public function findByUserId(int $userId, int $contactId): ?Contact;
 
     /**
      * Return the contacts by email.
@@ -33,9 +35,9 @@ interface ContactRepositoryInterface extends BaseRepositoryInterface
      * Store by given data
      *
      * @param $data
-     * @return mixed
+     * @return Contact
      */
-    public function store($data);
+    public function store($data): Contact;
 
     /**
      * Delete the specified contacts
@@ -49,16 +51,16 @@ interface ContactRepositoryInterface extends BaseRepositoryInterface
     /**
      * Send verify request and record send_verified_at.
      *
-     * @param $contactId
-     * @return mixed
+     * @param int $contactId
+     * @return bool
      */
-    public function sendVerifyRequest($contactId);
+    public function sendVerifyRequest(int $contactId): bool;
 
     /**
      * Record the email_verified_at.
      *
-     * @param $id
-     * @return mixed
+     * @param int $id
+     * @return ?Contact
      */
-    public function verify($id);
+    public function verify(int $id): ?Contact;
 }

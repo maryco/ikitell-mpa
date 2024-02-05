@@ -27,9 +27,9 @@ class ContactRepository implements ContactRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\ContactRepositoryInterface::findByUserId
+     * @inheritDoc
      */
-    public function findByUserId($userId, $contactId)
+    public function findByUserId($userId, $contactId): ?Contact
     {
         return Contact::id($contactId)
             ->userId($userId)
@@ -37,7 +37,7 @@ class ContactRepository implements ContactRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\ContactRepositoryInterface::findByEmail
+     * @inheritDoc
      */
     public function findByEmail($email)
     {
@@ -45,7 +45,7 @@ class ContactRepository implements ContactRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\ContactRepositoryInterface::getByUserId
+     * @inheritDoc
      */
     public function getByUserId($userId, $onlyAvailable = false)
     {
@@ -65,34 +65,31 @@ class ContactRepository implements ContactRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\ContactRepositoryInterface::store
-     * @throws \Throwable
+     * @inheritDoc
      */
-    public function store($data)
+    public function store($data): Contact
     {
         return DB::transaction(function () use ($data) {
-            if (Arr::get($data, 'id', null)) {
-                $rule = $this->findByUserId($data['user_id'], $data['id']);
+            if ($id = Arr::get($data, 'id')) {
+                $contact = $this->findByUserId($data['user_id'], $id);
 
                 // Force remove 'email', if has send verify email.
-                if ($rule && !$rule->enableEditEmail()) {
+                if ($contact && !$contact->enableEditEmail()) {
                     Arr::forget($data, 'email');
                 }
             } else {
-                $rule = $this->makeModel();
+                $contact = $this->makeModel();
             }
 
-            $rule->mergeData($data);
+            $contact->mergeData($data);
+            $contact->save();
 
-            $rule->save();
-
-            return $rule;
+            return $contact;
         });
     }
 
     /**
-     * @see \App\Models\Repositories\ContactRepositoryInterface::delete
-     * @throws \Throwable
+     * @inheritDoc
      */
     public function delete($contactId, $userId)
     {
@@ -117,12 +114,11 @@ class ContactRepository implements ContactRepositoryInterface
     }
 
     /**
-     * @see \App\Models\Repositories\ContactRepositoryInterface::sendVerifyRequest
-     * @throws \Throwable
+     * @inheritDoc
      */
-    public function sendVerifyRequest($contactId)
+    public function sendVerifyRequest($contactId): bool
     {
-        return DB::transaction(function () use ($contactId) {
+        return DB::transaction(static function () use ($contactId) {
             $contact = Contact::id($contactId)
                 ->lockForUpdate()
                 ->first();
@@ -132,44 +128,41 @@ class ContactRepository implements ContactRepositoryInterface
                 return false;
             }
 
-            $contact->sendVerifyRequestNotification(true);
-
             $contact->send_verify_at = Carbon::now();
-
             $contact->save();
+            $contact->sendVerifyRequestNotification(true);
 
             return true;
         });
     }
 
     /**
-     * @see \App\Models\Repositories\ContactRepositoryInterface::verify()
-     * @throws \Throwable
+     * @inheritDoc
      */
-    public function verify($id)
+    public function verify($id): ?Contact
     {
-        return DB::transaction(function () use ($id) {
+        return DB::transaction(static function () use ($id) {
             $contact = Contact::id($id)
                 ->lockForUpdate()
                 ->first();
 
             if (!$contact) {
-                Log::error('Not found target contact [%id]', ['%id' => $id]);
+                Log::error('Not found target contact', ['contactId' => $id]);
                 return null;
             }
 
             if ($contact->isVerified()) {
                 Log::error(
-                    'Already verified [%id] [%at]',
-                    ['%id' => $id, '%at' => $contact->email_verified_at]
+                    'Already verified',
+                    ['contactId' => $id, 'verifiedAt' => $contact->email_verified_at]
                 );
                 return null;
             }
 
             if ($contact->isVerifyExpired()) {
                 Log::error(
-                    'Expired for verification [%id] [%send_at]',
-                    ['%id' => $id, '%send_at' => $contact->send_verify_at]
+                    'Expired for verification',
+                    ['contactId' => $id, 'sendVerifyAt' => $contact->send_verify_at]
                 );
                 return null;
             }

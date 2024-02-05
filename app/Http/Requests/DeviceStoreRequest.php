@@ -2,12 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\Device\DeviceType;
 use App\Models\Entities\Device;
 use App\Models\Repositories\DeviceRepository;
 use App\Rules\MaxStored;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
 
@@ -16,7 +15,7 @@ class DeviceStoreRequest extends BaseStoreRequest
     /**
      * Structures for the front interface.
      */
-    const FRONT_MODELS = [
+    public const FRONT_MODELS = [
         'rule' => [
             'value' => '',
             'text' => '',
@@ -31,33 +30,33 @@ class DeviceStoreRequest extends BaseStoreRequest
         ],
     ];
 
-    protected $ignoreInputRegex = '/^device_/';
+    protected string $ignoreInputRegex = '/^device_/';
 
     /**
      * Determine if the user is authorized to make this request.
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
+     * @return array<string, mixed>
      */
-    public function rules()
+    public function rules(): array
     {
-        // Rules for the only create.
+        $user = auth_provided_user();
+
+        // Rules for the only creation.
         $createRule = [];
-        if (Route::getCurrentRoute()->getName() === 'device.create') {
+        if (Route::getCurrentRoute()?->getName() === 'device.create') {
             $createRule['device_total'] = [
                 'required',
                 new MaxStored(
                     new DeviceRepository(),
-                    Auth::user()->getMaxMakingDevice()
+                    $user?->getMaxMakingDevice()
                 ),
             ];
         }
@@ -74,7 +73,7 @@ class DeviceStoreRequest extends BaseStoreRequest
 
                 'device_rule_id' => [
                     'required',
-                    'string',
+                    'integer',
                     Rule::exists('rules', 'id')->where(function ($query) {
                         $query->where('user_id', Auth::id());
                     }),
@@ -83,7 +82,7 @@ class DeviceStoreRequest extends BaseStoreRequest
                 'device_notification_targets' => [
                     'nullable',
                     'array',
-                    'max:' . Auth::user()->getMaxNotifyTargets(),
+                    'max:' . $user?->getMaxNotifyTargets(),
                     Rule::exists('contacts', 'id')->where(function ($query) {
                         $query->where('user_id', Auth::id())
                             ->whereNotNull('email_verified_at');
@@ -95,7 +94,7 @@ class DeviceStoreRequest extends BaseStoreRequest
     }
 
     /**
-     * @return array|mixed
+     * @return array<string, string>
      */
     public function messages()
     {
@@ -106,19 +105,14 @@ class DeviceStoreRequest extends BaseStoreRequest
     }
 
     /**
-     * @see \App\Http\Requests\BaseStoreRequest::onlyForStore
+     * @see BaseStoreRequest::onlyForStore
      */
-    public function onlyForStore()
+    public function onlyForStore(): array
     {
         $data = parent::onlyForStore();
 
-        /**
-         * TODO:
-         * - Type is set to 'pc' force in release beta.
-         * - Can edit devices are user type 'basic' or 'business'.
-         */
         $data['owner_id'] = Auth::id();
-        $data['type'] = config('codes.device_types.pc');
+        $data['type'] = DeviceType::GENERAL->value;
 
         return $data;
     }
@@ -128,9 +122,9 @@ class DeviceStoreRequest extends BaseStoreRequest
      * for the Vue component parameter.
      *
      * @param $rules
-     * @return array
+     * @return array<string, mixed>
      */
-    public static function rulesToArray($rules)
+    public static function rulesToArray($rules): array
     {
         $data = [];
 
@@ -152,9 +146,9 @@ class DeviceStoreRequest extends BaseStoreRequest
      *
      * @param $contacts
      * @param $bindContactIds
-     * @return array
+     * @return array<string, mixed>
      */
-    public static function contactsToArray($contacts, $bindContactIds)
+    public static function contactsToArray($contacts, $bindContactIds): array
     {
         $data = [];
 
@@ -163,7 +157,7 @@ class DeviceStoreRequest extends BaseStoreRequest
             $isPop = false;
             if ($bindContactIds) {
                 foreach ($bindContactIds as $bindContactId) {
-                    if ($contact->id == $bindContactId) {
+                    if ($contact->id === (int) $bindContactId) {
                         $isPop = true;
                         break;
                     }
@@ -185,7 +179,7 @@ class DeviceStoreRequest extends BaseStoreRequest
      *
      * @return array|mixed|null
      */
-    public function getPresetImages()
+    public function getPresetImages(): mixed
     {
         return Device::getPresetImage();
     }

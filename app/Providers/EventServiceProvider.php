@@ -4,10 +4,8 @@ namespace App\Providers;
 
 use App\Listeners\MarkDeviceReported;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -40,20 +38,25 @@ class EventServiceProvider extends ServiceProvider
 
         if (Config::get('app.db_debug_query')) {
             DB::listen(
-                function ($query) {
-                    if (preg_match('/`jobs`/', $query->sql)) {
-                        /**
-                         * NOTE: Prevent logging 'select ..jobs...' query endless.
-                         * Append also table 'failed_jobs' if you need.
-                         */
+                static function ($query) {
+                    /**
+                     * NOTE: Prevent too many logging for a jobs table.
+                     * Append also table 'failed_jobs' if you need.
+                     */
+                    if (
+                        app()->environment('production')
+                        && str_contains($query->sql, 'jobs')
+                    ) {
                         return;
                     }
 
-                    Log::debug('SQL [%query] [%bindings] [%time]', [
-                        '%query' => $query->sql,
-                        '%bindings' => $query->bindings,
-                        '%time' => $query->time
-                    ]);
+                    Log::channel('sql')->debug(
+                        $query->sql,
+                        [
+                            'bindings' => $query->bindings,
+                            'time' => $query->time
+                        ]
+                    );
                 }
             );
         }

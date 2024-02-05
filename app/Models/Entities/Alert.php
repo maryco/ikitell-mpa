@@ -2,9 +2,11 @@
 
 namespace App\Models\Entities;
 
+use App\Notifications\AlertNotification;
 use Database\Factories\AlertFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Alert extends Model
 {
@@ -12,6 +14,7 @@ class Alert extends Model
 
     /**
      * The type of email address.
+     * TODO: Change to Enum
      */
     const TARGET_TYPE_OWNER = 1;
     const TARGET_TYPE_USER = 2;
@@ -30,6 +33,11 @@ class Alert extends Model
      * @var array
      */
     protected $guarded = ['send_targets'];
+
+    protected $casts = [
+        'notify_count' => 'integer',
+        'max_notify_count' => 'integer',
+    ];
 
     /**
      * The target of sending emails.
@@ -54,7 +62,10 @@ class Alert extends Model
 
         self::retrieved(function ($model) {
             if ($model->notification_payload) {
-                $model->notification_payload = unserialize($model->notification_payload);
+                $model->notification_payload = unserialize(
+                    $model->notification_payload,
+                    ['allowed_classes' => [AlertNotification::class]]
+                );
             }
 
             $model->sendTargetBag = json_decode($model->send_targets, true) ?: [];
@@ -62,11 +73,11 @@ class Alert extends Model
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo<Device>
      */
-    public function device()
+    public function device(): BelongsTo
     {
-        return $this->belongsTo('App\Models\Entities\Device', 'device_id', 'id');
+        return $this->belongsTo(Device::class, 'device_id', 'id');
     }
 
     /**

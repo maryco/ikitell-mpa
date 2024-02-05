@@ -1,4 +1,8 @@
 <?php
+
+use App\Models\Entities\User;
+use Illuminate\Http\JsonResponse;
+
 if (! function_exists('boolstr')) {
     /**
      * Get the bool value as a string.
@@ -17,10 +21,11 @@ if (! function_exists('response_json_redirection')) {
      *
      * @param string $message
      * @param string $url
+     * @return JsonResponse
      */
-    function response_json_redirection($message, $url)
+    function response_json_redirection(string $message, string $url): JsonResponse
     {
-        response()->json(
+        return response()->json(
             [
                 'message' => $message,
                 'location' => $url,
@@ -32,6 +37,7 @@ if (! function_exists('response_json_redirection')) {
 
 if (! function_exists('is_seems_ie')) {
     /**
+     * TODO: Remove
      * Whether is access by the IE.
      * NOTE: It's check User-Agent in the request header.
      *
@@ -49,5 +55,31 @@ if (! function_exists('is_seems_ie')) {
          * @see https://garafu.blogspot.com/2015/01/ie-useragent-2.html
          */
         return (preg_match('/Trident/', $ua) === 1);
+    }
+}
+
+if (! function_exists('auth_provided_user')) {
+    /**
+     * Cast from Illuminate\Foundation\Auth\User to App\Models\Entities\User
+     *
+     * @return ?User
+     */
+    function auth_provided_user(): User|null
+    {
+        return auth()->user() instanceof User ? auth()->user() : null;
+    }
+}
+
+if (! function_exists('config_int')) {
+    /**
+     * Get strict integer value from config
+     *
+     * @param string $key
+     * @param int $default
+     * @return int
+     */
+    function config_int(string $key, int $default): int
+    {
+        return is_int(config($key)) ? config($key) : $default;
     }
 }

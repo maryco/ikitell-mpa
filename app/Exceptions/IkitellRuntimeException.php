@@ -2,7 +2,9 @@
 
 namespace App\Exceptions;
 
-class IkitellRuntimeException extends \RuntimeException
+use RuntimeException;
+
+class IkitellRuntimeException extends RuntimeException
 {
     //
 }
